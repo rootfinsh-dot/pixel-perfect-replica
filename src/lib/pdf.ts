@@ -55,7 +55,7 @@ export async function exportReportPdf(opts: {
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       pagebreak: { mode: ["css", "legacy"] },
-    } as unknown as Parameters<ReturnType<typeof html2pdf>["set"]>[0])
+    } as never)
     .from(el)
     .save();
 }
