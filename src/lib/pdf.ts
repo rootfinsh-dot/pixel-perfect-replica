@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export type ReportSection = { title: string; question?: string; content: string; date?: string };
+export type ReportSection = { title: string; question?: string | undefined; content: string; date?: string | undefined };
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
@@ -55,7 +55,7 @@ export async function exportReportPdf(opts: {
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       pagebreak: { mode: ["css", "legacy"] },
-    })
+    } as unknown as Parameters<ReturnType<typeof html2pdf>["set"]>[0])
     .from(el)
     .save();
 }

@@ -10,7 +10,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { ACCEPT, analyseFile, blobToDataUrl, formatSize, mimeFor, safeFileName } from "@/lib/documents";
-import { exportReportPdf, pdfName } from "@/lib/pdf";
+import { exportReportPdf, pdfName, type ReportSection } from "@/lib/pdf";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId")({
   head: () => ({
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId")({
 
 type Doc = { id: string; name: string; mime: string; size: number; kind: string; storage_path: string; extracted_text: string | null; created_at: string };
 type Report = { id: string; title: string; question: string; content: string; created_at: string };
-type Msg = { role: "user" | "assistant"; content: string; error?: boolean; reportId?: string; question?: string };
+type Msg = { role: "user" | "assistant"; content: string; error?: boolean; reportId?: string | undefined; question?: string | undefined };
 
 const QUICK = [
   "Analyse ce plan architectural", "Calcule les surfaces", "Extrais les informations clés", "Compare ces documents",
@@ -225,7 +225,7 @@ function ProjectPage() {
     }
   }
 
-  async function pdf(sections: { title: string; question?: string; content: string; date?: string }[], suffix: string) {
+  async function pdf(sections: ReportSection[], suffix: string) {
     setExporting(true);
     try {
       await exportReportPdf({ project: projectName, docs: docs.map((d) => d.name), sections, fileName: pdfName(projectName, suffix) });
