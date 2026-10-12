@@ -44,20 +44,33 @@ export async function exportReportPdf(opts: {
     : "";
   const html = `<style>${CSS}</style><div class="r"><div class="hd"><div class="brand">BATI DOC AI</div><div class="meta">Rapport — Projet : <strong>${esc(opts.project)}</strong> — ${date}</div></div>${docs}${body}<div class="ft">Rapport généré par l'Assistant IA de BATI DOC AI. Les résultats doivent être vérifiés par un professionnel qualifié.</div></div>`;
 
-  const el = document.createElement("div");
-  el.innerHTML = html;
-  const html2pdf = (await import("html2pdf.js")).default;
-  await html2pdf()
-    .set({
-      margin: [12, 10, 14, 10],
-      filename: opts.fileName,
-      image: { type: "jpeg", quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ["css", "legacy"] },
-    } as never)
-    .from(el)
-    .save();
+  // Render in an isolated iframe: the app's stylesheet uses oklch() colors,
+  // which the PDF renderer cannot parse.
+  const frame = document.createElement("iframe");
+  frame.setAttribute("aria-hidden", "true");
+  frame.style.cssText = "position:fixed;left:-10000px;top:0;width:800px;height:1200px;border:0;";
+  document.body.appendChild(frame);
+  try {
+    const doc = frame.contentDocument!;
+    doc.open();
+    doc.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"></head><body style="margin:0;background:#fff">${html}</body></html>`);
+    doc.close();
+    const el = doc.querySelector(".r") as HTMLElement;
+    const html2pdf = (await import("html2pdf.js")).default;
+    await html2pdf()
+      .set({
+        margin: [12, 10, 14, 10],
+        filename: opts.fileName,
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["css", "legacy"] },
+      } as never)
+      .from(el)
+      .save();
+  } finally {
+    frame.remove();
+  }
 }
 
 export function pdfName(project: string, suffix: string) {
