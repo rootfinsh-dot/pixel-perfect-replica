@@ -11,4 +11,4 @@
 
 - AI chat goes through the server route `src/routes/api/chat.ts` (Responses API, raw SSE passthrough); it checks the caller's sign-in token and keeps the API key server-side.
 - Data lives in Lovable Cloud: `projects`, `documents` (files in private `documents` bucket under `<userId>/<projectId>/`), `reports` (every assistant answer auto-saved as markdown); all rows owner-only via RLS.
-- Documents are parsed in the browser (`src/lib/documents.ts`); PDF reports are generated client-side from markdown (`src/lib/pdf.ts`, html2pdf.js) so accents and tables render correctly.
+- Documents are parsed in the browser (`src/lib/documents.ts`); PDF reports are generated client-side from markdown (`src/lib/pdf.ts`: html2canvas + jsPDF, rendered inside an isolated iframe because the PDF renderer cannot parse the app's oklch colors).

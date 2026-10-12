@@ -8,7 +8,7 @@ export type ReportSection = { title: string; question?: string | undefined; cont
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 const CSS = `
-.r{font-family:"IBM Plex Sans",Arial,sans-serif;color:#1f2430;font-size:11pt;line-height:1.5;padding:0 4mm}
+.r{font-family:Arial,Helvetica,sans-serif;color:#1f2430;font-size:11pt;line-height:1.5}
 .r .hd{border-bottom:3px solid #e2611b;padding-bottom:8px;margin-bottom:14px}
 .r .brand{font-family:Archivo,Arial,sans-serif;font-weight:800;font-size:18pt;color:#e2611b}
 .r .meta{color:#5b6070;font-size:9.5pt}
@@ -44,20 +44,54 @@ export async function exportReportPdf(opts: {
     : "";
   const html = `<style>${CSS}</style><div class="r"><div class="hd"><div class="brand">BATI DOC AI</div><div class="meta">Rapport — Projet : <strong>${esc(opts.project)}</strong> — ${date}</div></div>${docs}${body}<div class="ft">Rapport généré par l'Assistant IA de BATI DOC AI. Les résultats doivent être vérifiés par un professionnel qualifié.</div></div>`;
 
-  const el = document.createElement("div");
-  el.innerHTML = html;
-  const html2pdf = (await import("html2pdf.js")).default;
-  await html2pdf()
-    .set({
-      margin: [12, 10, 14, 10],
-      filename: opts.fileName,
-      image: { type: "jpeg", quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ["css", "legacy"] },
-    } as never)
-    .from(el)
-    .save();
+  // Render in an isolated iframe: the app's stylesheet uses oklch() colors,
+  // which the PDF renderer cannot parse.
+  const WIDTH = 794; // A4 width at 96 dpi
+  const frame = document.createElement("iframe");
+  frame.setAttribute("aria-hidden", "true");
+  frame.style.cssText = `position:fixed;left:-10000px;top:0;width:${WIDTH}px;height:1123px;border:0;`;
+  document.body.appendChild(frame);
+  try {
+    const doc = frame.contentDocument!;
+    doc.open();
+    doc.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"></head><body style="margin:0;background:#fff"><div style="width:${WIDTH}px;padding:40px 36px;box-sizing:border-box">${html}</div></body></html>`);
+    doc.close();
+    await doc.fonts?.ready;
+    const root = doc.body.firstElementChild as HTMLElement;
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
+    const canvas = await html2canvas(root, { scale: 2, backgroundColor: "#ffffff", windowWidth: WIDTH, useCORS: true });
+
+    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    const pageW = 210, pageH = 297;
+    const pxPerMm = canvas.width / pageW;
+    const pagePx = Math.floor(pageH * pxPerMm);
+    const ctx = canvas.getContext("2d")!;
+    for (let y = 0, page = 0; y < canvas.height; y += pagePx, page++) {
+      // avoid cutting through a line of text: move the cut up to the nearest blank row
+      let h = Math.min(pagePx, canvas.height - y);
+      if (y + h < canvas.height) {
+        for (let k = 0; k < 120; k++) {
+          const row = ctx.getImageData(0, y + h - k, canvas.width, 1).data;
+          let blank = true;
+          for (let i = 0; i < row.length; i += 16) if (row[i]! < 245) { blank = false; break; }
+          if (blank) { h -= k; break; }
+        }
+      }
+      const slice = document.createElement("canvas");
+      slice.width = canvas.width;
+      slice.height = h;
+      slice.getContext("2d")!.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+      if (page > 0) pdf.addPage();
+      pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, h / pxPerMm);
+      pdf.setFontSize(8);
+      pdf.setTextColor(120);
+      pdf.text(`Page ${page + 1}`, pageW - 20, pageH - 6);
+      y = y - pagePx + h;
+    }
+    pdf.save(opts.fileName);
+  } finally {
+    frame.remove();
+  }
 }
 
 export function pdfName(project: string, suffix: string) {
