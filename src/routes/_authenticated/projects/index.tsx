@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, FolderOpen, Trash2, FileText, FileBarChart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { deleteProjectFiles } from "@/lib/project-storage";
 
 export const Route = createFileRoute("/_authenticated/projects/")({
   head: () => ({
@@ -53,8 +54,7 @@ function ProjectsPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { data: docs } = await supabase.from("documents").select("storage_path").eq("project_id", id);
-      if (docs?.length) await supabase.storage.from("documents").remove(docs.map((d) => d.storage_path));
+      await deleteProjectFiles(id);
       const { error } = await supabase.from("projects").delete().eq("id", id);
       if (error) throw error;
     },

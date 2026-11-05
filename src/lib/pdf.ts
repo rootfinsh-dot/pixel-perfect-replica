@@ -86,7 +86,10 @@ export async function exportReportPdf(opts: {
       pdf.text("BATI DOC AI", PDF_LAYOUT.marginMm, 18);
       pdf.setDrawColor(201, 203, 210);
       pdf.line(PDF_LAYOUT.marginMm, 22, PDF_LAYOUT.pageWidthMm - PDF_LAYOUT.marginMm, 22);
-      pdf.addImage(canvas.toDataURL("image/png"), "PNG", PDF_LAYOUT.marginMm, PDF_LAYOUT.contentTopMm, contentWidth, Math.min(contentHeight, canvas.height / canvas.width * contentWidth));
+      // Fit both dimensions together: never compress only the image height.
+      const naturalHeight = canvas.height / canvas.width * contentWidth;
+      const scale = Math.min(1, contentHeight / naturalHeight);
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", PDF_LAYOUT.marginMm, PDF_LAYOUT.contentTopMm, contentWidth * scale, naturalHeight * scale);
       pdf.line(PDF_LAYOUT.marginMm, 283, PDF_LAYOUT.pageWidthMm - PDF_LAYOUT.marginMm, 283);
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(8);
