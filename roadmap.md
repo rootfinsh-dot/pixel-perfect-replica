@@ -4,3 +4,9 @@
 - [x] PDF report export in French (per answer + full project)
 - [x] Project management page with saved documents and reports (accounts)
 - [ ] Correct PDF margins, page breaks and long-table layout; verify exported reports.
+- [ ] Fiabiliser la détection documentaire et ajouter des tests.
+- [ ] Borner les requêtes IA et afficher leurs erreurs françaises.
+- [ ] Fiabiliser le nettoyage du stockage à la suppression d’un projet.
+- [ ] Rendre les aperçus, rapports et dépôt accessibles au clavier.
+- [ ] Conserver les conversations par projet dans Lovable Cloud.
+- [ ] Corriger la dépendance PDF signalée vulnérable et vérifier les parcours.
