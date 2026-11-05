@@ -19,7 +19,7 @@ export function paginateReport(source: HTMLElement, pageHeight: number): HTMLEle
     return page;
   };
   let page = newPage();
-  const fits = () => page.getBoundingClientRect().height <= pageHeight + 0.5;
+  const fits = () => page.getBoundingClientRect().height <= pageHeight - 3;
   const hasContent = () => page.childNodes.length > 0;
 
   function add(node: HTMLElement) {
@@ -138,8 +138,22 @@ export function paginateReport(source: HTMLElement, pageHeight: number): HTMLEle
     if (node.matches("h1,h2,h3,h4,.section-heading") && hasContent()) {
       const next = blocks[i + 1];
       // Keep headings with at least the opening lines of their content.
-      const needed = node.getBoundingClientRect().height || original.getBoundingClientRect().height;
-      if (page.getBoundingClientRect().height + needed + Math.min(next?.getBoundingClientRect().height ?? 0, 70) > pageHeight) page = newPage();
+      // Measure a real pair in its final page, including margins and table header.
+      page.appendChild(node);
+      const opening = next?.cloneNode(true) as HTMLElement | undefined;
+      if (opening) {
+        if (opening.tagName === "TABLE") {
+          const table = opening as HTMLTableElement;
+          Array.from(table.tBodies).forEach(body => Array.from(body.rows).slice(1).forEach(row => row.remove()));
+        } else if (opening.matches("ul,ol")) {
+          Array.from(opening.children).slice(1).forEach(child => child.remove());
+        }
+        page.appendChild(opening);
+      }
+      const keepTogether = fits();
+      opening?.remove();
+      node.remove();
+      if (!keepTogether) page = newPage();
     }
     if (node.tagName === "TABLE") addTable(original as HTMLTableElement);
     else if (node.matches("ul,ol")) {

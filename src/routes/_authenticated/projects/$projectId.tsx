@@ -11,6 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { ACCEPT, analyseFile, blobToDataUrl, formatSize, mimeFor, safeFileName } from "@/lib/documents";
 import { exportReportPdf, pdfName, type ReportSection } from "@/lib/pdf";
+import { serializeChatBody, CHAT_LIMITS } from "@/lib/chat-request";
+import { historyKey, readHistory, type ChatMessage } from "@/lib/chat-history";
+import { ProjectDialog } from "@/components/ProjectDialog";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId")({
   head: () => ({
@@ -28,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/projects/$projectId")({
 
 type Doc = { id: string; name: string; mime: string; size: number; kind: string; storage_path: string; extracted_text: string | null; created_at: string };
 type Report = { id: string; title: string; question: string; content: string; created_at: string };
-type Msg = { role: "user" | "assistant"; content: string; error?: boolean; reportId?: string | undefined; question?: string | undefined };
+type Msg = ChatMessage;
 
 const QUICK = [
   "Analyse ce plan architectural", "Calcule les surfaces", "Extrais les informations clés", "Compare ces documents",
@@ -85,6 +89,8 @@ function ProjectPage() {
   const [drag, setDrag] = useState(false);
   const [tab, setTab] = useState<"chat" | "reports">("chat");
   const [messages, setMessages] = useState<Msg[]>([]);
+  const [historyStorageKey, setHistoryStorageKey] = useState<string | null>(null);
+  const [historyReady, setHistoryReady] = useState(false);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -94,6 +100,38 @@ function ProjectPage() {
   const taRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const dataUrlCache = useRef(new Map<string, string>());
+
+  useEffect(() => {
+    let active = true;
+    setHistoryReady(false);
+    setMessages([]);
+    setHistoryStorageKey(null);
+    dataUrlCache.current.clear();
+    void supabase.auth.getUser().then(({ data }) => {
+      if (!active || !data.user) return;
+      const key = historyKey(data.user.id, projectId);
+      try {
+        const saved = readHistory(key);
+        if (saved !== null) { setMessages(saved); setHistoryReady(true); }
+      } catch { setNotice("L’historique local n’a pas pu être relu."); }
+      setHistoryStorageKey(key);
+    });
+    return () => { active = false; abortRef.current?.abort(); };
+  }, [projectId]);
+  useEffect(() => {
+    if (!historyStorageKey || historyReady || !reportsQ.isSuccess) return;
+    // Existing saved analyses restore earlier successful exchanges too.
+    setMessages([...reports].reverse().flatMap(r => [
+      { role: "user" as const, content: r.question || r.title },
+      { role: "assistant" as const, content: r.content, question: r.question, reportId: r.id },
+    ]));
+    setHistoryReady(true);
+  }, [historyStorageKey, historyReady, reportsQ.isSuccess, reportsQ.data]);
+  useEffect(() => {
+    if (!historyReady || !historyStorageKey) return;
+    try { localStorage.setItem(historyStorageKey, JSON.stringify(messages.filter(m => m.content))); }
+    catch { setNotice("L’historique ne peut pas être enregistré sur ce navigateur. Les analyses restent dans Rapports."); }
+  }, [messages, historyReady, historyStorageKey]);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [messages]);
   useEffect(() => { if (!streaming && tab === "chat") taRef.current?.focus(); }, [streaming, tab]);
@@ -127,7 +165,8 @@ function ProjectPage() {
 
   async function deleteDoc(d: Doc) {
     if (!confirm(`Supprimer « ${d.name} » ?`)) return;
-    await supabase.storage.from("documents").remove([d.storage_path]);
+    const removed = await supabase.storage.from("documents").remove([d.storage_path]);
+    if (removed.error) return setNotice("Le fichier n’a pas pu être supprimé. Réessayez.");
     const { error } = await supabase.from("documents").delete().eq("id", d.id);
     if (error) setNotice("Suppression impossible.");
     qc.invalidateQueries({ queryKey: ["documents", projectId] });
@@ -141,7 +180,7 @@ function ProjectPage() {
   }
 
   async function docPayload(d: Doc) {
-    if (d.extracted_text) return { name: d.name, kind: d.kind, mime: d.mime, text: d.extracted_text };
+    if (d.extracted_text) return { name: d.name, kind: d.kind, mime: d.mime, text: d.extracted_text.slice(0, 60000) };
     let dataUrl = dataUrlCache.current.get(d.id);
     if (!dataUrl) {
       const { data, error } = await supabase.storage.from("documents").download(d.storage_path);
@@ -164,23 +203,25 @@ function ProjectPage() {
 
   async function send(text: string) {
     const content = text.trim();
-    if (!content || streaming) return;
+    if (!content || streaming || !historyReady) return;
     const history: Msg[] = [...messages.filter((m) => !m.error), { role: "user", content }];
     setMessages([...history, { role: "assistant", content: "", question: content }]);
     setInput("");
     setStreaming(true);
     const ac = new AbortController();
     abortRef.current = ac;
-    const setLast = (fn: (m: Msg) => Msg) => setMessages((prev) => [...prev.slice(0, -1), fn(prev[prev.length - 1]!)]);
+    const setLast = (fn: (m: Msg) => Msg) => setMessages((prev) => { const last = prev.at(-1); return last ? [...prev.slice(0, -1), fn(last)] : prev; });
     let answer = "";
     try {
-      const payloadDocs = await Promise.all(selected.slice(0, 10).map(docPayload));
+      if (selected.length > CHAT_LIMITS.documents) throw new Error("Sélectionnez au maximum 10 documents pour une demande à l’assistant.");
+      const payloadDocs = await Promise.all(selected.map(docPayload));
+      const body = serializeChatBody({ project: projectName, messages: history.slice(-59).map(({ role, content }) => ({ role, content: content.slice(0, 20000) })), docs: payloadDocs });
       const { data: s } = await supabase.auth.getSession();
       const res = await fetch("/api/chat", {
         method: "POST",
         signal: ac.signal,
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${s.session?.access_token ?? ""}` },
-        body: JSON.stringify({ project: projectName, messages: history.map(({ role, content }) => ({ role, content })), docs: payloadDocs }),
+        body,
       });
       if (!res.ok || !res.body) {
         const j = await res.json().catch(() => ({}));
@@ -287,7 +328,8 @@ function ProjectPage() {
               onDrop={(e) => { e.preventDefault(); setDrag(false); addFiles(Array.from(e.dataTransfer.files)); }}
               onClick={() => fileRef.current?.click()}
               role="button" tabIndex={0}
-              onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && fileRef.current?.click()}
+              aria-label="Déposer des documents"
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileRef.current?.click(); } }}
               className={`blueprint cursor-pointer rounded-lg border-2 border-dashed p-4 text-center transition-colors ${drag ? "border-primary bg-accent" : "border-border hover:border-primary"}`}
             >
               <Upload className="mx-auto h-5 w-5 text-primary" />
@@ -362,7 +404,7 @@ function ProjectPage() {
                     <p className="mt-2 text-muted-foreground">Les documents cochés sont lus par l'assistant. Chaque réponse est enregistrée dans « Rapports ».</p>
                     <div className="mt-6 grid gap-2 sm:grid-cols-2">
                       {QUICK.map((q) => (
-                        <button key={q} onClick={() => send(q)} className="rounded-md border border-border bg-card px-3 py-2.5 text-left text-sm transition-colors hover:border-primary hover:bg-accent">{q}</button>
+                        <button key={q} disabled={!historyReady} onClick={() => send(q)} className="rounded-md border border-border bg-card px-3 py-2.5 text-left text-sm transition-colors hover:border-primary hover:bg-accent">{q}</button>
                       ))}
                     </div>
                   </div>
@@ -414,7 +456,7 @@ function ProjectPage() {
                 {streaming ? (
                   <button type="button" aria-label="Arrêter" onClick={() => abortRef.current?.abort()} className="flex h-10 w-10 items-center justify-center rounded-md bg-destructive text-destructive-foreground"><Square className="h-4 w-4" /></button>
                 ) : (
-                  <button type="submit" aria-label="Envoyer" disabled={!input.trim()} className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground disabled:opacity-40"><Send className="h-4 w-4" /></button>
+                  <button type="submit" aria-label="Envoyer" disabled={!input.trim() || !historyReady} className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground disabled:opacity-40"><Send className="h-4 w-4" /></button>
                 )}
               </form>
               <p className="mx-auto mt-1.5 max-w-3xl text-[11px] text-muted-foreground">Les résultats de l'IA doivent être vérifiés par un professionnel qualifié.</p>
@@ -426,34 +468,30 @@ function ProjectPage() {
       {notice && <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-md bg-secondary px-4 py-2 text-sm text-secondary-foreground shadow">{notice}</div>}
 
       {preview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4" onClick={() => setPreview(null)}>
-          <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-card" onClick={(e) => e.stopPropagation()}>
+        <ProjectDialog title={preview.doc.name} wide onClose={() => setPreview(null)}>
             <div className="flex items-center gap-2 border-b border-border p-3">
               <div className="min-w-0 flex-1 truncate font-medium">{preview.doc.name}</div>
               <span className="font-mono text-xs text-muted-foreground">{preview.doc.kind}</span>
-              <button aria-label="Fermer" onClick={() => setPreview(null)} className="rounded p-1 hover:bg-accent"><X className="h-4 w-4" /></button>
+              <Button variant="ghost" size="icon" aria-label="Fermer" onClick={() => setPreview(null)} className="h-6 w-6 rounded p-1"><X className="h-4 w-4" /></Button>
             </div>
             <div className="min-h-0 flex-1 overflow-auto">
               {preview.url && preview.doc.mime.startsWith("image/") ? <img src={preview.url} alt={preview.doc.name} className="mx-auto max-h-[80vh]" />
                 : preview.url ? <iframe title={preview.doc.name} src={preview.url} className="h-[80vh] w-full" />
                 : <pre className="whitespace-pre-wrap p-4 font-mono text-xs">{preview.doc.extracted_text}</pre>}
             </div>
-          </div>
-        </div>
+        </ProjectDialog>
       )}
 
       {viewReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50 p-4" onClick={() => setViewReport(null)}>
-          <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-card" onClick={(e) => e.stopPropagation()}>
+        <ProjectDialog title={viewReport.title} onClose={() => setViewReport(null)}>
             <div className="flex items-center gap-2 border-b border-border p-3">
               <div className="min-w-0 flex-1 truncate font-medium">{viewReport.title}</div>
               <button disabled={exporting} onClick={() => pdf([{ title: viewReport.title, question: viewReport.question, content: viewReport.content, date: fmtDate(viewReport.created_at) }], "analyse")}
                 className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs text-primary-foreground disabled:opacity-40"><FileDown className="h-3.5 w-3.5" /> PDF</button>
-              <button aria-label="Fermer" onClick={() => setViewReport(null)} className="rounded p-1 hover:bg-accent"><X className="h-4 w-4" /></button>
+              <Button variant="ghost" size="icon" aria-label="Fermer" onClick={() => setViewReport(null)} className="h-6 w-6 rounded p-1"><X className="h-4 w-4" /></Button>
             </div>
             <div className="md min-h-0 flex-1 overflow-auto p-5 text-sm"><ReactMarkdown remarkPlugins={[remarkGfm]}>{viewReport.content}</ReactMarkdown></div>
-          </div>
-        </div>
+        </ProjectDialog>
       )}
     </div>
   );
