@@ -1,19 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
-import { z } from "zod";
-
-const Doc = z.object({
-  name: z.string(),
-  kind: z.string(),
-  mime: z.string(),
-  text: z.string().optional(),
-  dataUrl: z.string().optional(),
-});
-const Body = z.object({
-  messages: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(20000) })).min(1).max(60),
-  project: z.string().max(200).optional(),
-  docs: z.array(Doc).max(10),
-});
+import { ChatRequestError, readChatBody } from "@/lib/chat-request";
 
 const SYSTEM = `Tu es l'Assistant IA de BATI DOC AI, expert BTP (architecture, génie civil, bureaux d'études, administration de chantier).
 Tu analyses plans, PDF, devis, CCTP, métrés, permis, PV. Tu calcules surfaces et quantités en montrant tes calculs, tu extrais les informations clés, compares les documents, détectes incohérences et pièces manquantes, rédiges fiches techniques, lettres administratives et rapports.
@@ -34,9 +21,13 @@ export const Route = createFileRoute("/api/chat")({
     handlers: {
       POST: async ({ request }) => {
         if (!(await isSignedIn(request))) return Response.json({ error: "Veuillez vous reconnecter." }, { status: 401 });
-        const parsed = Body.safeParse(await request.json().catch(() => null));
-        if (!parsed.success) return Response.json({ error: "Requête invalide." }, { status: 400 });
-        const { messages, docs, project } = parsed.data;
+        let body;
+        try { body = await readChatBody(request); }
+        catch (e) {
+          if (e instanceof ChatRequestError) return Response.json({ error: e.message }, { status: e.status });
+          return Response.json({ error: "La demande n’a pas pu être lue." }, { status: 400 });
+        }
+        const { messages, docs, project } = body;
         const apiKey = process.env["LOVABLE_API_KEY"];
         if (!apiKey) return Response.json({ error: "Service IA non configuré." }, { status: 500 });
 

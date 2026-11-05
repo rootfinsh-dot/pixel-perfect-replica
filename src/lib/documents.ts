@@ -2,20 +2,29 @@ export const ACCEPT = ".pdf,.png,.jpg,.jpeg,.docx,.xlsx,.xls,.txt,.csv";
 export const MAX_SIZE = 15 * 1024 * 1024;
 
 export function guessKind(name: string, text = ""): string {
-  const s = (name + " " + text.slice(0, 3000)).toLowerCase();
-  const rules: [RegExp, string][] = [
-    [/plan|façade|facade|coupe|niveau|rdc|étage/, "Plan architectural"],
-    [/devis|quotation/, "Devis"],
-    [/facture|invoice/, "Facture"],
-    [/cctp|cahier des clauses/, "CCTP"],
-    [/dpgf|bpu|métré|metre|quantitatif/, "Métré / DPGF"],
-    [/permis|autorisation|urbanisme/, "Permis / Urbanisme"],
-    [/procès-verbal|proces-verbal|réception|\bpv\b/, "Procès-verbal"],
-    [/contrat|marché|convention/, "Contrat"],
-    [/note de calcul|béton|ferraillage|structure/, "Note de calcul"],
-    [/rapport|compte rendu|compte-rendu/, "Rapport"],
+  const normalize = (value: string) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  // Specific document labels outrank incidental construction vocabulary.
+  const categories: [string, [string, number][]][] = [
+    ["CCTP", [["cctp", 12], ["cahier des clauses techniques particulieres", 12], ["cahier des clauses", 8]]],
+    ["Devis", [["devis", 10], ["quotation", 10]]],
+    ["Facture", [["facture", 10], ["invoice", 10]]],
+    ["Métré / DPGF", [["dpgf", 12], ["bpu", 12], ["metre", 8], ["quantitatif", 6]]],
+    ["Permis / Urbanisme", [["permis", 10], ["autorisation", 8], ["urbanisme", 5]]],
+    ["Procès-verbal", [["proces verbal", 12], ["pv", 10], ["reception", 3]]],
+    ["Contrat", [["contrat", 10], ["marche", 6], ["convention", 8]]],
+    ["Note de calcul", [["note de calcul", 12], ["beton", 2], ["ferraillage", 3], ["structure", 2]]],
+    ["Rapport", [["rapport", 10], ["compte rendu", 12]]],
+    ["Plan architectural", [["plan architectural", 12], ["plan", 4], ["facade", 3], ["coupe", 3], ["niveau", 1], ["rdc", 2], ["etage", 1]]],
   ];
-  for (const [re, k] of rules) if (re.test(s)) return k;
+  function classify(value: string) {
+    const normalized = ` ${normalize(value)} `;
+    const ranked = categories.map(([kind, terms]) => ({ kind, score: terms.reduce((sum, [term, weight]) => sum + (normalized.includes(` ${term} `) ? weight : 0), 0) }));
+    ranked.sort((a, b) => b.score - a.score);
+    const best = ranked[0];
+    return best && best.score >= 3 ? best.kind : undefined;
+  }
+  const kind = classify(name.replace(/\.[^.]+$/, "")) ?? classify(text.slice(0, 3000));
+  if (kind) return kind;
   if (/\.(png|jpe?g)$/i.test(name)) return "Image / Plan";
   if (/\.xlsx?$/i.test(name)) return "Tableur";
   return "Document";
@@ -43,7 +52,7 @@ export async function analyseFile(file: File): Promise<{ kind: string; text: str
   if (/\.xlsx?$/.test(lower)) {
     const XLSX = await import("xlsx");
     const wb = XLSX.read(await file.arrayBuffer());
-    const text = wb.SheetNames.map((n) => `### Feuille ${n}\n${XLSX.utils.sheet_to_csv(wb.Sheets[n]!)}`).join("\n\n");
+    const text = wb.SheetNames.map((n) => { const sheet = wb.Sheets[n]; return `### Feuille ${n}\n${sheet ? XLSX.utils.sheet_to_csv(sheet) : ""}`; }).join("\n\n");
     return { kind: guessKind(file.name, text), text };
   }
   if (/\.(txt|csv)$/.test(lower)) {
