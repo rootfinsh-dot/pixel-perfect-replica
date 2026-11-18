@@ -22,6 +22,7 @@ import {
   ArrowLeft,
   FileBarChart,
   MessageSquare,
+  FolderOpen,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
@@ -38,6 +39,7 @@ import { serializeChatBody, CHAT_LIMITS } from "@/lib/chat-request";
 import { historyKey, readHistory, type ChatMessage } from "@/lib/chat-history";
 import { ProjectDialog } from "@/components/ProjectDialog";
 import { Button } from "@/components/ui/button";
+import { CahierDeCharges } from "@/components/cahier-decharges/CahierDeCharges";
 
 export const Route = createFileRoute("/_authenticated/projects/$projectId")({
   head: () => ({
@@ -139,7 +141,7 @@ function ProjectPage() {
   const [preview, setPreview] = useState<{ doc: Doc; url?: string } | null>(null);
   const [viewReport, setViewReport] = useState<Report | null>(null);
   const [drag, setDrag] = useState(false);
-  const [tab, setTab] = useState<"chat" | "reports">("chat");
+  const [tab, setTab] = useState<"chat" | "reports" | "cahier-decharges">("chat");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [historyStorageKey, setHistoryStorageKey] = useState<string | null>(null);
   const [historyReady, setHistoryReady] = useState(false);
@@ -480,10 +482,11 @@ function ProjectPage() {
             <MessageSquare className="h-3.5 w-3.5" /> Assistant
           </button>
           <button
-            onClick={() => setTab("reports")}
-            className={`inline-flex items-center gap-1 rounded px-2.5 py-1 ${tab === "reports" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+            onClick={() => setTab("cahier-decharges")}
+            className={`inline-flex items-center gap-1 rounded px-2.5 py-1 ${tab === "cahier-decharges" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}
           >
-            <FileBarChart className="h-3.5 w-3.5" /> Rapports ({reports.length})
+            <FolderOpen className="h-3.5 w-3.5" />
+            Cahier de charges
           </button>
         </div>
       </div>
@@ -678,35 +681,36 @@ function ProjectPage() {
               ))}
             </div>
           </main>
+        ) : tab === "cahier-decharges" ? (
+          <CahierDeCharges />
         ) : (
           <main className="flex min-h-0 flex-1 flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto">
               <div className="mx-auto max-w-3xl px-4 py-6">
                 {messages.length === 0 ? (
-                  <div className="py-6">
-                    <h2 className="font-display text-3xl font-bold tracking-tight">
-                      Assistant IA du projet
-                    </h2>
-                    <p className="mt-2 text-muted-foreground">
-                      Les documents cochés sont lus par l'assistant. Chaque réponse est enregistrée
-                      dans « Rapports ».
-                    </p>
-                    <div className="mt-6 grid gap-2 sm:grid-cols-2">
-                      {QUICK.map((q) => (
-                        <button
-                          key={q}
-                          disabled={!historyReady}
-                          onClick={() => send(q)}
-                          className="rounded-md border border-border bg-card px-3 py-2.5 text-left text-sm transition-colors hover:border-primary hover:bg-accent"
-                        >
-                          {q}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {messages.map((m, i) => (
+  <div className="py-6">
+    <h2 className="font-display text-3xl font-bold tracking-tight">
+      Assistant IA du projet
+    </h2>
+    <p className="mt-2 text-muted-foreground">
+      Les documents cochés sont lus par l'assistant. Chaque réponse est enregistrée dans « Rapports ».
+    </p>
+    <div className="mt-6 grid gap-2 sm:grid-cols-2">
+      {QUICK.map((q) => (
+        <button
+          key={q}
+          disabled={!historyReady}
+          onClick={() => send(q)}
+          className="rounded-md border border-border bg-card px-3 py-2.5 text-left text-sm transition-colors hover:border-primary hover:bg-accent"
+        >
+          {q}
+        </button>
+      ))}
+    </div>
+  </div>
+) : (
+  <div className="space-y-6">
+    {messages.map((m, i) => (
                       <div key={i} className={m.role === "user" ? "flex justify-end" : ""}>
                         {m.role === "user" ? (
                           <div className="max-w-[85%] whitespace-pre-wrap rounded-lg bg-primary px-4 py-2.5 text-sm text-primary-foreground">

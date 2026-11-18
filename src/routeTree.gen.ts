@@ -15,6 +15,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects/index'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects/$projectId'
+import { Route as AuthenticatedProjectsProjectIdCahierDechargesRouteImport } from './routes/_authenticated/projects/$projectId/cahier-decharges'
+import { Route as ApiCahierDechargesRouteImport } from './routes/api/cahier-decharges'
+import { Route as ApiCahierDechargesSaveRouteImport } from './routes/api/cahier-decharges/save'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -54,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
   '/projects/': typeof AuthenticatedProjectsIndexRoute
+  '/_authenticated/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -69,7 +73,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/api/chat': typeof ApiChatRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
-  '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
+  '/_authenticated/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
+}
+export interface FileRoutesByTo {
+  '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/api/chat': typeof ApiChatRoute
+  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/projects': typeof AuthenticatedProjectsIndexRoute
+  '/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -136,6 +148,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/projects/$projectId'
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/cahier-decharges': {
+      id: '/cahier-decharges'
+      path: '/cahier-decharges'
+      fullPath: '/cahier-decharges'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
+      parentRoute: typeof AuthenticatedProjectsProjectIdRoute
+    }
+    '/api/cahier-decharges': {
+      id: '/api/cahier-decharges'
+      path: '/api/cahier-decharges'
+      fullPath: '/api/cahier-decharges'
+      preLoaderRoute: typeof ApiCahierDechargesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/cahier-decharges/save': {
+      id: '/api/cahier-decharges/save'
+      path: '/api/cahier-decharges/save'
+      fullPath: '/api/cahier-decharges/save'
+      preLoaderRoute: typeof ApiCahierDechargesSaveRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
