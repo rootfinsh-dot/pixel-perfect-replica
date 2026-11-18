@@ -1,11 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 
-Object.defineProperty(window, "scrollTo", {
+const win = globalThis.window ?? globalThis;
+Object.defineProperty(win, "scrollTo", {
   writable: true,
   value: () => {},
 });
 
-Object.defineProperty(window, "matchMedia", {
+Object.defineProperty(win, "matchMedia", {
   writable: true,
   value: (query: string) => ({
     matches: false,

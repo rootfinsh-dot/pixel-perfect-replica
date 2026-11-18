@@ -1,10 +1,28 @@
 import { describe, expect, it } from "vitest";
 import { guessKind } from "./documents";
 describe("Document classification", () => {
-  it("prioritizes a CCTP filename over plan and niveau in text", () => expect(guessKind("CCTP_lot_02.pdf", "plan niveau façade coupe étage")).toBe("CCTP"));
-  it("prioritizes a devis filename over a text label", () => expect(guessKind("devis.pdf", "CCTP")).toBe("Devis"));
-  it("scores specific text labels above incidental plan vocabulary", () => expect(guessKind("document.pdf", "CCTP avec un plan au niveau de la façade")).toBe("CCTP"));
-  it("does not match partial words", () => expect(guessKind("plantation.pdf", "surfacture nivellement")).toBe("Document"));
-  it("identifies accented filenames", () => expect(guessKind("procès-verbal.pdf")).toBe("Procès-verbal"));
-  it("recognizes a plan filename", () => expect(guessKind("plan_RDC.pdf", "rapport")).toBe("Plan architectural"));
+  it("prioritizes a CCTP filename over plan and niveau in text", () =>
+    expect(guessKind("CCTP_lot_02.pdf", "plan niveau façade coupe étage")).toBe("CCTP"));
+  it("prioritizes a devis filename over a text label", () =>
+    expect(guessKind("devis.pdf", "CCTP")).toBe("Devis"));
+  it("scores specific text labels above incidental plan vocabulary", () =>
+    expect(guessKind("document.pdf", "CCTP avec un plan au niveau de la façade")).toBe("CCTP"));
+  it("does not match partial words", () =>
+    expect(guessKind("plantation.pdf", "surfacture nivellement")).toBe("Document"));
+  it("identifies accented filenames", () =>
+    expect(guessKind("procès-verbal.pdf")).toBe("Procès-verbal"));
+  it("recognizes a plan filename", () =>
+    expect(guessKind("plan_RDC.pdf", "rapport")).toBe("Plan architectural"));
+
+  it("classifies a facture filename", () => expect(guessKind("facture-02.pdf")).toBe("Facture"));
+  it("defaults a text-only file with no keywords to Document", () =>
+    expect(guessKind("neomin.pdf", "toto")).toBe("Document"));
+  it("classifies a PNG as Image / Plan", () =>
+    expect(guessKind("maison.png")).toBe("Image / Plan"));
+  it("defaults a DOCX name to Document", () =>
+    expect(guessKind("cahier-de-tests.docx")).toBe("Document"));
+  it("uses the filename over the text", () =>
+    expect(guessKind("cctp.pdf", "devis avec notes")).toBe("CCTP"));
+  it("rejects low-weight incidental vocabulary", () =>
+    expect(guessKind("maison.pdf", "niveau salon")).toBe("Document"));
 });

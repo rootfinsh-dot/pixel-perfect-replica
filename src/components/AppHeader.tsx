@@ -13,7 +13,9 @@ export function AppHeader({ children }: { children?: ReactNode }) {
         </div>
         <div className="leading-tight">
           <div className="font-display text-lg font-bold tracking-tight">BATI DOC AI</div>
-          <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">Plateforme IA · BTP</div>
+          <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+            Plateforme IA · BTP
+          </div>
         </div>
       </Link>
       <div className="ml-auto flex items-center gap-2">

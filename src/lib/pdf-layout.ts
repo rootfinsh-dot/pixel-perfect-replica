@@ -38,7 +38,7 @@ export function paginateReport(source: HTMLElement, pageHeight: number): HTMLEle
   // Split at word boundaries while retaining emphasis, links and inline markup.
   // This is only needed when an individual paragraph exceeds a whole page.
   function splitLongBlock(node: HTMLElement) {
-    let remaining = node;
+    const remaining = node;
     while (true) {
       page.appendChild(remaining);
       if (fits()) return;
@@ -53,7 +53,9 @@ export function paginateReport(source: HTMLElement, pageHeight: number): HTMLEle
         }
         text = walker.nextNode();
       }
-      let low = 0, high = boundaries.length - 1, best = -1;
+      let low = 0,
+        high = boundaries.length - 1,
+        best = -1;
       while (low <= high) {
         const mid = Math.floor((low + high) / 2);
         const boundary = boundaries[mid];
@@ -66,13 +68,18 @@ export function paginateReport(source: HTMLElement, pageHeight: number): HTMLEle
         page.appendChild(trial);
         const ok = fits();
         trial.remove();
-        if (ok) { best = mid; low = mid + 1; } else high = mid - 1;
+        if (ok) {
+          best = mid;
+          low = mid + 1;
+        } else high = mid - 1;
       }
       const boundary = boundaries[best];
       if (!boundary || best === boundaries.length - 1) {
         // Non-text blocks (e.g. images) stay intact, scaled to the printable area.
         page.appendChild(remaining);
-        remaining.style.zoom = String(Math.min(1, pageHeight / remaining.getBoundingClientRect().height));
+        remaining.style.zoom = String(
+          Math.min(1, pageHeight / remaining.getBoundingClientRect().height),
+        );
         return;
       }
       const range = doc.createRange();
@@ -87,10 +94,15 @@ export function paginateReport(source: HTMLElement, pageHeight: number): HTMLEle
 
   function addTable(table: HTMLTableElement) {
     const rows = Array.from(table.tBodies).flatMap((body) => Array.from(body.rows));
-    if (!rows.length) { add(table); return; }
+    if (!rows.length) {
+      add(table);
+      return;
+    }
     // Fix column widths before splitting, so every continuation aligns.
     const measuredCells = table.rows[0]?.cells;
-    const widths = measuredCells ? Array.from(measuredCells).map((cell) => cell.getBoundingClientRect().width) : [];
+    const widths = measuredCells
+      ? Array.from(measuredCells).map((cell) => cell.getBoundingClientRect().width)
+      : [];
     let chunk: HTMLTableElement | undefined;
     let body: HTMLTableSectionElement | undefined;
     function startChunk() {
@@ -144,9 +156,15 @@ export function paginateReport(source: HTMLElement, pageHeight: number): HTMLEle
       if (opening) {
         if (opening.tagName === "TABLE") {
           const table = opening as HTMLTableElement;
-          Array.from(table.tBodies).forEach(body => Array.from(body.rows).slice(1).forEach(row => row.remove()));
+          Array.from(table.tBodies).forEach((body) =>
+            Array.from(body.rows)
+              .slice(1)
+              .forEach((row) => row.remove()),
+          );
         } else if (opening.matches("ul,ol")) {
-          Array.from(opening.children).slice(1).forEach(child => child.remove());
+          Array.from(opening.children)
+            .slice(1)
+            .forEach((child) => child.remove());
         }
         page.appendChild(opening);
       }

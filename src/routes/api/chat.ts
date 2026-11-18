@@ -20,11 +20,14 @@ export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        if (!(await isSignedIn(request))) return Response.json({ error: "Veuillez vous reconnecter." }, { status: 401 });
+        if (!(await isSignedIn(request)))
+          return Response.json({ error: "Veuillez vous reconnecter." }, { status: 401 });
         let body;
-        try { body = await readChatBody(request); }
-        catch (e) {
-          if (e instanceof ChatRequestError) return Response.json({ error: e.message }, { status: e.status });
+        try {
+          body = await readChatBody(request);
+        } catch (e) {
+          if (e instanceof ChatRequestError)
+            return Response.json({ error: e.message }, { status: e.status });
           return Response.json({ error: "La demande n’a pas pu être lue." }, { status: 400 });
         }
         const { messages, docs, project } = body;
@@ -34,12 +37,18 @@ export const Route = createFileRoute("/api/chat")({
         const docParts: Record<string, unknown>[] = [];
         for (const d of docs) {
           if (d.dataUrl && d.mime.startsWith("image/")) {
-            docParts.push({ type: "input_text", text: `Document « ${d.name} » (${d.kind}) — image ci-dessous :` });
+            docParts.push({
+              type: "input_text",
+              text: `Document « ${d.name} » (${d.kind}) — image ci-dessous :`,
+            });
             docParts.push({ type: "input_image", image_url: d.dataUrl });
           } else if (d.dataUrl && d.mime === "application/pdf") {
             docParts.push({ type: "input_file", filename: d.name, file_data: d.dataUrl });
           } else if (d.text) {
-            docParts.push({ type: "input_text", text: `Document « ${d.name} » (${d.kind}) :\n${d.text.slice(0, 60000)}` });
+            docParts.push({
+              type: "input_text",
+              text: `Document « ${d.name} » (${d.kind}) :\n${d.text.slice(0, 60000)}`,
+            });
           }
         }
 
@@ -49,7 +58,10 @@ export const Route = createFileRoute("/api/chat")({
         messages.forEach((m, i) => {
           if (m.role === "user") {
             const last = i === messages.length - 1;
-            input.push({ role: "user", content: [...(last ? docParts : []), { type: "input_text", text: m.content }] });
+            input.push({
+              role: "user",
+              content: [...(last ? docParts : []), { type: "input_text", text: m.content }],
+            });
           } else {
             input.push({ role: "assistant", content: [{ type: "output_text", text: m.content }] });
           }
@@ -59,7 +71,11 @@ export const Route = createFileRoute("/api/chat")({
           const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
             method: "POST",
             signal: request.signal,
-            headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "fetch" },
+            headers: {
+              "Content-Type": "application/json",
+              "Lovable-API-Key": apiKey,
+              "X-Lovable-AIG-SDK": "fetch",
+            },
             body: JSON.stringify({
               model: "openai/gpt-6-astra",
               input,
@@ -85,7 +101,10 @@ export const Route = createFileRoute("/api/chat")({
             return Response.json({ error: msg }, { status: res.status || 500 });
           }
           return new Response(res.body, {
-            headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform" },
+            headers: {
+              "Content-Type": "text/event-stream",
+              "Cache-Control": "no-cache, no-transform",
+            },
           });
         } catch (e) {
           if (request.signal.aborted) return new Response(null, { status: 499 });

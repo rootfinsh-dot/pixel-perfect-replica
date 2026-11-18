@@ -4,9 +4,15 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { paginateReport, PDF_LAYOUT } from "./pdf-layout";
 
-export type ReportSection = { title: string; question?: string | undefined; content: string; date?: string | undefined };
+export type ReportSection = {
+  title: string;
+  question?: string | undefined;
+  content: string;
+  date?: string | undefined;
+};
 
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] ?? c);
+const esc = (s: string) =>
+  s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] ?? c);
 
 const CSS = `
 /* Print-only tokens: this document cannot inherit the app's oklch palette. */
@@ -42,17 +48,23 @@ export async function exportReportPdf(opts: {
   sections: ReportSection[];
   fileName: string;
 }) {
-  const date = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+  const date = new Date().toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
   const body = opts.sections
     .map((s) => {
-      const md = renderToStaticMarkup(createElement(ReactMarkdown, { remarkPlugins: [remarkGfm] }, s.content));
+      const md = renderToStaticMarkup(
+        createElement(ReactMarkdown, { remarkPlugins: [remarkGfm] }, s.content),
+      );
       return `<div class="section-heading"><div class="sec-t">${esc(s.title)}</div>${s.question && s.question.trim() !== s.title.trim() ? `<div class="q">Demande : ${esc(s.question)}</div>` : ""}${s.date ? `<div class="meta">${esc(s.date)}</div>` : ""}</div>${md}`;
     })
     .join("");
   const docs = opts.docs?.length
     ? `<div class="docs"><strong>Documents analysés :</strong> ${opts.docs.map(esc).join(" · ")}</div>`
     : "";
-   const html = `<style>${CSS}</style><div class="r" id="source"><h1>Rapport — ${esc(opts.project)}</h1><p class="meta">${date}</p>${docs}${body}<div class="ft">Rapport généré par l'Assistant IA de BATI DOC AI. Les résultats doivent être vérifiés par un professionnel qualifié.</div></div>`;
+  const html = `<style>${CSS}</style><div class="r" id="source"><h1>Rapport — ${esc(opts.project)}</h1><p class="meta">${date}</p>${docs}${body}<div class="ft">Rapport généré par l'Assistant IA de BATI DOC AI. Les résultats doivent être vérifiés par un professionnel qualifié.</div></div>`;
 
   // Render in an isolated iframe: the app's stylesheet uses oklch() colors,
   // which the PDF renderer cannot parse.
@@ -65,20 +77,30 @@ export async function exportReportPdf(opts: {
     const doc = frame.contentDocument;
     if (!doc) throw new Error("Le document PDF n'a pas pu être préparé.");
     doc.open();
-    doc.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"></head><body>${html}</body></html>`);
+    doc.write(
+      `<!doctype html><html lang="fr"><head><meta charset="utf-8"></head><body>${html}</body></html>`,
+    );
     doc.close();
     await doc.fonts?.ready;
     const source = doc.getElementById("source");
     if (!source) throw new Error("Le contenu du rapport est introuvable.");
     const contentWidth = PDF_LAYOUT.pageWidthMm - PDF_LAYOUT.marginMm * 2;
     const contentHeight = PDF_LAYOUT.contentBottomMm - PDF_LAYOUT.contentTopMm;
-    const pages = paginateReport(source, contentHeight * WIDTH / contentWidth);
+    const pages = paginateReport(source, (contentHeight * WIDTH) / contentWidth);
     source.remove();
-    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+      import("html2canvas"),
+      import("jspdf"),
+    ]);
 
     const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
     for (const [index, root] of pages.entries()) {
-      const canvas = await html2canvas(root, { scale: 2, backgroundColor: "#ffffff", windowWidth: WIDTH, useCORS: true });
+      const canvas = await html2canvas(root, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        windowWidth: WIDTH,
+        useCORS: true,
+      });
       if (index > 0) pdf.addPage();
       pdf.setFont("helvetica", "bold");
       pdf.setFontSize(11);
@@ -87,15 +109,27 @@ export async function exportReportPdf(opts: {
       pdf.setDrawColor(201, 203, 210);
       pdf.line(PDF_LAYOUT.marginMm, 22, PDF_LAYOUT.pageWidthMm - PDF_LAYOUT.marginMm, 22);
       // Fit both dimensions together: never compress only the image height.
-      const naturalHeight = canvas.height / canvas.width * contentWidth;
+      const naturalHeight = (canvas.height / canvas.width) * contentWidth;
       const scale = Math.min(1, contentHeight / naturalHeight);
-      pdf.addImage(canvas.toDataURL("image/png"), "PNG", PDF_LAYOUT.marginMm, PDF_LAYOUT.contentTopMm, contentWidth * scale, naturalHeight * scale);
+      pdf.addImage(
+        canvas.toDataURL("image/png"),
+        "PNG",
+        PDF_LAYOUT.marginMm,
+        PDF_LAYOUT.contentTopMm,
+        contentWidth * scale,
+        naturalHeight * scale,
+      );
       pdf.line(PDF_LAYOUT.marginMm, 283, PDF_LAYOUT.pageWidthMm - PDF_LAYOUT.marginMm, 283);
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(8);
       pdf.setTextColor(120);
       pdf.text("BATI DOC AI — Rapport de projet", PDF_LAYOUT.marginMm, 289);
-      pdf.text(`Page ${index + 1} / ${pages.length}`, PDF_LAYOUT.pageWidthMm - PDF_LAYOUT.marginMm, 289, { align: "right" });
+      pdf.text(
+        `Page ${index + 1} / ${pages.length}`,
+        PDF_LAYOUT.pageWidthMm - PDF_LAYOUT.marginMm,
+        289,
+        { align: "right" },
+      );
     }
     pdf.save(opts.fileName);
   } finally {
@@ -104,6 +138,10 @@ export async function exportReportPdf(opts: {
 }
 
 export function pdfName(project: string, suffix: string) {
-  const base = `${project}-${suffix}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9-]+/g, "-").slice(0, 80);
+  const base = `${project}-${suffix}`
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9-]+/g, "-")
+    .slice(0, 80);
   return `${base}-${new Date().toISOString().slice(0, 10)}.pdf`;
 }
