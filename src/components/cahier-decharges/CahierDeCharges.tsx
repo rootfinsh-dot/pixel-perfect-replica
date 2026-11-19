@@ -4,12 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
+// Type for analysis result structure
+type AnalysisResult = {
+  id: string;
+  message: string;
+  sections: { key: string; label: string; data: Record<string, unknown> }[];
+  [key: string]: unknown;
+};
+
 export function CahierDeCharges() {
   const [files, setFiles] = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
 
@@ -24,14 +32,17 @@ export function CahierDeCharges() {
     setAnalyzing(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const accepted = Array.from(e.dataTransfer.files).filter(f =>
-      ACCEPT.includes(f.name.toLowerCase().slice(f.name.lastIndexOf(".")))
-    );
-    if (accepted.length) handleFiles(accepted);
-  }, [handleFiles]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      const accepted = Array.from(e.dataTransfer.files).filter((f) =>
+        ACCEPT.includes(f.name.toLowerCase().slice(f.name.lastIndexOf("."))),
+      );
+      if (accepted.length) handleFiles(accepted);
+    },
+    [handleFiles],
+  );
 
   const handleUpload = useCallback(() => {
     if (!files.length) return;
@@ -86,24 +97,27 @@ export function CahierDeCharges() {
     }
   }, []);
 
-  const saveToProject = useCallback(async (projectId: string) => {
-    if (!result?.id) return;
-    setSaved(null);
-    try {
-      const res = await fetch("/api/cahier-decharges/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ projectId, cahierId: result.id }),
-      });
-      if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
-        throw new Error(j.error || "Erreur lors de la sauvegarde.");
+  const saveToProject = useCallback(
+    async (projectId: string) => {
+      if (!result?.id) return;
+      setSaved(null);
+      try {
+        const res = await fetch("/api/cahier-decharges/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId, cahierId: result.id }),
+        });
+        if (!res.ok) {
+          const j = await res.json().catch(() => ({}));
+          throw new Error(j.error || "Erreur lors de la sauvegarde.");
+        }
+        setSaved(result.id);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Erreur lors de la sauvegarde.");
       }
-      setSaved(result.id);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur lors de la sauvegarde.");
-    }
-  }, [result]);
+    },
+    [result],
+  );
 
   const reset = useCallback(() => {
     setFiles([]);
@@ -151,7 +165,10 @@ export function CahierDeCharges() {
             className={`flex flex-col items-center gap-3 rounded-lg border-2 border-dashed p-8 text-center transition ${
               dragOver ? "border-primary bg-primary/5" : "border-muted-foreground/25"
             }`}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
           >
@@ -162,12 +179,7 @@ export function CahierDeCharges() {
             <p className="text-xs text-muted-foreground">
               PDF, DOCX, TXT, CSV ou image (max 15 Mo)
             </p>
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleUpload}
-              disabled={!files.length}
-            >
+            <Button variant="default" size="sm" onClick={handleUpload} disabled={!files.length}>
               <Upload className="h-4 w-4 mr-2" />
               Choisir un fichier
             </Button>
@@ -181,7 +193,7 @@ export function CahierDeCharges() {
                   {f.name} ({formatSize(f.size)})
                   <button
                     onClick={() => {
-                      setFiles(files.filter(f => f !== f));
+                      setFiles(files.filter((f) => f !== f));
                       reset();
                     }}
                     className="ml-2 hover:text-destructive"
@@ -204,11 +216,16 @@ export function CahierDeCharges() {
               <div>
                 <p className="font-medium">Analyse terminée</p>
                 <p className="text-sm text-muted-foreground">
-                  {typeof result.message === "string" ? result.message.length : 0} sections structurées
+                  {typeof result.message === "string" ? result.message.length : 0} sections
+                  structurées
                 </p>
               </div>
             </div>
-            <Button variant="default" size="sm" onClick={() => saveToProject("PLACEHOLDER_PROJECT_ID")}>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => saveToProject("PLACEHOLDER_PROJECT_ID")}
+            >
               <Save className="h-4 w-4 mr-2" />
               Enregistrer
             </Button>
@@ -239,7 +256,7 @@ export function CahierDeCharges() {
                       <CardContent>
                         {typeof value === "object" && Array.isArray(value) ? (
                           <ul className="space-y-2">
-                            {value.map((item: any, i: number) => (
+                            {value.map((item: { id: string; title: string }, i: number) => (
                               <li key={i} className="text-sm">
                                 <span className="font-mono text-muted-foreground">{item.id}</span>
                                 <span className="ml-2 text-foreground">{item.title}</span>
@@ -251,7 +268,7 @@ export function CahierDeCharges() {
                             {JSON.stringify(value, null, 2)}
                           </pre>
                         ) : (
-                          <p className="text-sm">{value}</p>
+                          <p className="text-sm">{String(value)}</p>
                         )}
                       </CardContent>
                     </Card>

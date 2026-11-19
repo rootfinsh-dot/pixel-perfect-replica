@@ -32,12 +32,11 @@ export const Route = createFileRoute("/api/cahier-decharges/save")({
         }
 
         try {
-          const admin = supabaseAdmin as any;
-          const { data, error } = await admin
+          const { data, error } = await supabaseAdmin
             .from("cahiers_decharges")
             .update({
-              projectId,
-              updatedAt: new Date().toISOString(),
+              project_id: projectId,
+              updated_at: new Date().toISOString(),
             })
             .eq("id", cahierId)
             .select();
@@ -58,8 +57,12 @@ export const Route = createFileRoute("/api/cahier-decharges/save")({
             return Response.json({ error: "Cahier de charges introuvable." }, { status: 404 });
           }
 
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const row = data[0] as any;
+          const row = data[0] as {
+            id: string;
+            project_id: string;
+            analysis_status: string;
+            title: string;
+          };
 
           return Response.json({
             id: row.id,

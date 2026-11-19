@@ -11,6 +11,7 @@ Conserver le design et toutes les fonctionnalités actuelles.
 7. Mettre à jour la dépendance PDF vulnérable, exécuter les tests et documenter les résultats dans la roadmap.
 
 ## Détails techniques
+
 - Validation partagée client/serveur et lecture bornée du corps HTTP avant JSON.
 - Historique dans une table dédiée avec RLS propriétaire et suppression liée au projet.
 - Fenêtres fondées sur les primitives Dialog existantes, sans changement visuel.

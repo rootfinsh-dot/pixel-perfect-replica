@@ -120,6 +120,42 @@ export type Database = {
           },
         ];
       };
+      cahiers_decharges: {
+        Row: {
+          analysis_status: string;
+          created_at: string;
+          id: string;
+          project_id: string;
+          source_document_id: string | null;
+          summary: string | null;
+          title: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          analysis_status?: string;
+          created_at?: string;
+          id?: string;
+          project_id: string;
+          source_document_id?: string | null;
+          summary?: string | null;
+          title: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          analysis_status?: string;
+          created_at?: string;
+          id?: string;
+          project_id?: string;
+          source_document_id?: string | null;
+          summary?: string | null;
+          title?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

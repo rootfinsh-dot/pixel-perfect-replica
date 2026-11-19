@@ -688,29 +688,30 @@ function ProjectPage() {
             <div className="min-h-0 flex-1 overflow-y-auto">
               <div className="mx-auto max-w-3xl px-4 py-6">
                 {messages.length === 0 ? (
-  <div className="py-6">
-    <h2 className="font-display text-3xl font-bold tracking-tight">
-      Assistant IA du projet
-    </h2>
-    <p className="mt-2 text-muted-foreground">
-      Les documents cochés sont lus par l'assistant. Chaque réponse est enregistrée dans « Rapports ».
-    </p>
-    <div className="mt-6 grid gap-2 sm:grid-cols-2">
-      {QUICK.map((q) => (
-        <button
-          key={q}
-          disabled={!historyReady}
-          onClick={() => send(q)}
-          className="rounded-md border border-border bg-card px-3 py-2.5 text-left text-sm transition-colors hover:border-primary hover:bg-accent"
-        >
-          {q}
-        </button>
-      ))}
-    </div>
-  </div>
-) : (
-  <div className="space-y-6">
-    {messages.map((m, i) => (
+                  <div className="py-6">
+                    <h2 className="font-display text-3xl font-bold tracking-tight">
+                      Assistant IA du projet
+                    </h2>
+                    <p className="mt-2 text-muted-foreground">
+                      Les documents cochés sont lus par l'assistant. Chaque réponse est enregistrée
+                      dans « Rapports ».
+                    </p>
+                    <div className="mt-6 grid gap-2 sm:grid-cols-2">
+                      {QUICK.map((q) => (
+                        <button
+                          key={q}
+                          disabled={!historyReady}
+                          onClick={() => send(q)}
+                          className="rounded-md border border-border bg-card px-3 py-2.5 text-left text-sm transition-colors hover:border-primary hover:bg-accent"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {messages.map((m, i) => (
                       <div key={i} className={m.role === "user" ? "flex justify-end" : ""}>
                         {m.role === "user" ? (
                           <div className="max-w-[85%] whitespace-pre-wrap rounded-lg bg-primary px-4 py-2.5 text-sm text-primary-foreground">

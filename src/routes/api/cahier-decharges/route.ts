@@ -90,9 +90,7 @@ export const Route = createFileRoute("/api/cahier-decharges")({
           return Response.json({ error: "Service IA non configuré." }, { status: 500 });
         }
 
-        const input: Record<string, unknown>[] = [
-          { role: "system", content: SYSTEM },
-        ];
+        const input: Record<string, unknown>[] = [{ role: "system", content: SYSTEM }];
 
         if (sourceText) {
           input.push({
