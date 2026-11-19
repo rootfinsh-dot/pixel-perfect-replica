@@ -99,7 +99,9 @@ export function SubscriptionManager() {
               <Button
                 key={provider.id}
                 className="w-full"
-                onClick={() => setPaymentProvider(paymentProvider === provider.id ? null : provider.id)}
+                onClick={() =>
+                  setPaymentProvider(paymentProvider === provider.id ? null : provider.id)
+                }
                 variant={paymentProvider === provider.id ? "default" : "outline"}
               >
                 <span className="mr-2">{provider.icon}</span>

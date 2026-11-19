@@ -18,8 +18,10 @@ import { Route as ApiSubscriptionsRouteRouteImport } from './routes/api/subscrip
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects/index'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects/$projectId'
 import { Route as ApiCahierDechargesSaveRouteRouteImport } from './routes/api/cahier-decharges/save/route'
+import { Route as ApiSubscriptionsCancelRouteRouteImport } from './routes/api/subscriptions/cancel/route'
 import { Route as ApiSubscriptionsChar91idChar93RouteRouteImport } from './routes/api/subscriptions/[id]/route'
 import { Route as ApiSubscriptionsMeRouteRouteImport } from './routes/api/subscriptions/me/route'
+import { Route as ApiSubscriptionsSuccessRouteRouteImport } from './routes/api/subscriptions/success/route'
 import { Route as AuthenticatedProjectsProjectIdCahierDechargesRouteImport } from './routes/_authenticated/projects/$projectId/cahier-decharges'
 
 const IndexRoute = IndexRouteImport.update({
@@ -69,6 +71,12 @@ const ApiCahierDechargesSaveRouteRoute =
     path: '/save',
     getParentRoute: () => ApiCahierDechargesRouteRoute,
   } as any)
+const ApiSubscriptionsCancelRouteRoute =
+  ApiSubscriptionsCancelRouteRouteImport.update({
+    id: '/cancel',
+    path: '/cancel',
+    getParentRoute: () => ApiSubscriptionsRouteRoute,
+  } as any)
 const ApiSubscriptionsChar91idChar93RouteRoute =
   ApiSubscriptionsChar91idChar93RouteRouteImport.update({
     id: '/id',
@@ -80,6 +88,12 @@ const ApiSubscriptionsMeRouteRoute = ApiSubscriptionsMeRouteRouteImport.update({
   path: '/me',
   getParentRoute: () => ApiSubscriptionsRouteRoute,
 } as any)
+const ApiSubscriptionsSuccessRouteRoute =
+  ApiSubscriptionsSuccessRouteRouteImport.update({
+    id: '/success',
+    path: '/success',
+    getParentRoute: () => ApiSubscriptionsRouteRoute,
+  } as any)
 const AuthenticatedProjectsProjectIdCahierDechargesRoute =
   AuthenticatedProjectsProjectIdCahierDechargesRouteImport.update({
     id: '/cahier-decharges',
@@ -94,8 +108,10 @@ export interface FileRoutesByFullPath {
   '/api/subscriptions': typeof ApiSubscriptionsRouteRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
+  '/api/subscriptions/cancel': typeof ApiSubscriptionsCancelRouteRoute
   '/api/subscriptions/id': typeof ApiSubscriptionsChar91idChar93RouteRoute
   '/api/subscriptions/me': typeof ApiSubscriptionsMeRouteRoute
+  '/api/subscriptions/success': typeof ApiSubscriptionsSuccessRouteRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRouteWithChildren
   '/projects/': typeof AuthenticatedProjectsIndexRoute
   '/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
@@ -107,8 +123,10 @@ export interface FileRoutesByTo {
   '/api/subscriptions': typeof ApiSubscriptionsRouteRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
+  '/api/subscriptions/cancel': typeof ApiSubscriptionsCancelRouteRoute
   '/api/subscriptions/id': typeof ApiSubscriptionsChar91idChar93RouteRoute
   '/api/subscriptions/me': typeof ApiSubscriptionsMeRouteRoute
+  '/api/subscriptions/success': typeof ApiSubscriptionsSuccessRouteRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRouteWithChildren
   '/projects': typeof AuthenticatedProjectsIndexRoute
   '/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
@@ -122,8 +140,10 @@ export interface FileRoutesById {
   '/api/subscriptions': typeof ApiSubscriptionsRouteRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
+  '/api/subscriptions/cancel': typeof ApiSubscriptionsCancelRouteRoute
   '/api/subscriptions/id': typeof ApiSubscriptionsChar91idChar93RouteRoute
   '/api/subscriptions/me': typeof ApiSubscriptionsMeRouteRoute
+  '/api/subscriptions/success': typeof ApiSubscriptionsSuccessRouteRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRouteWithChildren
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/_authenticated/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
@@ -137,8 +157,10 @@ export interface FileRouteTypes {
     | '/api/subscriptions'
     | '/api/chat'
     | '/api/cahier-decharges/save'
+    | '/api/subscriptions/cancel'
     | '/api/subscriptions/id'
     | '/api/subscriptions/me'
+    | '/api/subscriptions/success'
     | '/projects/$projectId'
     | '/projects/'
     | '/projects/$projectId/cahier-decharges'
@@ -150,8 +172,10 @@ export interface FileRouteTypes {
     | '/api/subscriptions'
     | '/api/chat'
     | '/api/cahier-decharges/save'
+    | '/api/subscriptions/cancel'
     | '/api/subscriptions/id'
     | '/api/subscriptions/me'
+    | '/api/subscriptions/success'
     | '/projects/$projectId'
     | '/projects'
     | '/projects/$projectId/cahier-decharges'
@@ -164,8 +188,10 @@ export interface FileRouteTypes {
     | '/api/subscriptions'
     | '/api/chat'
     | '/api/cahier-decharges/save'
+    | '/api/subscriptions/cancel'
     | '/api/subscriptions/id'
     | '/api/subscriptions/me'
+    | '/api/subscriptions/success'
     | '/_authenticated/projects/$projectId'
     | '/_authenticated/projects/'
     | '/_authenticated/projects/$projectId/cahier-decharges'
@@ -245,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCahierDechargesSaveRouteRouteImport
       parentRoute: typeof ApiCahierDechargesRouteRoute
     }
+    '/api/subscriptions/cancel': {
+      id: '/api/subscriptions/cancel'
+      path: '/cancel'
+      fullPath: '/api/subscriptions/cancel'
+      preLoaderRoute: typeof ApiSubscriptionsCancelRouteRouteImport
+      parentRoute: typeof ApiSubscriptionsRouteRoute
+    }
     '/api/subscriptions/id': {
       id: '/api/subscriptions/id'
       path: '/id'
@@ -257,6 +290,13 @@ declare module '@tanstack/react-router' {
       path: '/me'
       fullPath: '/api/subscriptions/me'
       preLoaderRoute: typeof ApiSubscriptionsMeRouteRouteImport
+      parentRoute: typeof ApiSubscriptionsRouteRoute
+    }
+    '/api/subscriptions/success': {
+      id: '/api/subscriptions/success'
+      path: '/success'
+      fullPath: '/api/subscriptions/success'
+      preLoaderRoute: typeof ApiSubscriptionsSuccessRouteRouteImport
       parentRoute: typeof ApiSubscriptionsRouteRoute
     }
     '/_authenticated/projects/$projectId/cahier-decharges': {
@@ -313,14 +353,18 @@ const ApiCahierDechargesRouteRouteWithChildren =
   )
 
 interface ApiSubscriptionsRouteRouteChildren {
+  ApiSubscriptionsCancelRouteRoute: typeof ApiSubscriptionsCancelRouteRoute
   ApiSubscriptionsChar91idChar93RouteRoute: typeof ApiSubscriptionsChar91idChar93RouteRoute
   ApiSubscriptionsMeRouteRoute: typeof ApiSubscriptionsMeRouteRoute
+  ApiSubscriptionsSuccessRouteRoute: typeof ApiSubscriptionsSuccessRouteRoute
 }
 
 const ApiSubscriptionsRouteRouteChildren: ApiSubscriptionsRouteRouteChildren = {
+  ApiSubscriptionsCancelRouteRoute: ApiSubscriptionsCancelRouteRoute,
   ApiSubscriptionsChar91idChar93RouteRoute:
     ApiSubscriptionsChar91idChar93RouteRoute,
   ApiSubscriptionsMeRouteRoute: ApiSubscriptionsMeRouteRoute,
+  ApiSubscriptionsSuccessRouteRoute: ApiSubscriptionsSuccessRouteRoute,
 }
 
 const ApiSubscriptionsRouteRouteWithChildren =

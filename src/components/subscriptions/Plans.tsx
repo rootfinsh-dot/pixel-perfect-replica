@@ -11,11 +11,7 @@ export const PLANS = [
     description: "Pour découvrir l'IA",
     price: 0,
     period: "offert",
-    features: [
-      "1 analyse par mois",
-      "Documents limités",
-      "Support par email",
-    ],
+    features: ["1 analyse par mois", "Documents limités", "Support par email"],
     icon: CheckCircle,
     color: "green",
     highlighted: false,
@@ -73,7 +69,7 @@ export const PLANS = [
 ];
 
 interface PlanProps {
-  plan: typeof PLANS[0];
+  plan: (typeof PLANS)[0];
 }
 
 export function PlanCard({ plan }: PlanProps) {
@@ -86,7 +82,9 @@ export function PlanCard({ plan }: PlanProps) {
           <CardTitle className="text-xl">{plan.name}</CardTitle>
           <CardDescription>{plan.description}</CardDescription>
         </div>
-        <div className={`p-2 rounded-lg ${plan.highlighted ? "bg-primary/10 ring-2 ring-primary" : "bg-muted"}`}>
+        <div
+          className={`p-2 rounded-lg ${plan.highlighted ? "bg-primary/10 ring-2 ring-primary" : "bg-muted"}`}
+        >
           <Icon className="h-5 w-5 text-primary" />
         </div>
       </CardHeader>

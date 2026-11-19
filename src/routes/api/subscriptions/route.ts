@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { z } from "zod";
 
 // Plans disponibles
 export const PLANS = {
@@ -80,8 +81,79 @@ export const Route = createFileRoute("/api/subscriptions")({
           return Response.json({ error: "Impossible de créer l'abonnement" }, { status: 500 });
         }
 
-        // Créer la session de paiement (redirect vers le provider)
-        const checkoutUrl = `https://your-domain.com/checkout?subscriptionId=${data.id}&plan=${data.plan}&provider=${data.payment_provider}`;
+        let checkoutUrl: string;
+
+        if (body.paymentProvider === "paypal") {
+          // PayPal Standard (legacy) - redirection vers l'email du business
+          const paypalEmail = process.env["PAYPAL_EMAIL"];
+          if (!paypalEmail) {
+            return Response.json(
+              { error: "PAYPAL_EMAIL non configuré. Ajoutez PAYPAL_EMAIL dans .env" },
+              { status: 500 },
+            );
+          }
+
+          // Construction de l'URL PayPal Standard
+          const params = new URLSearchParams({
+            cmd: "_xclick",
+            business: paypalEmail,
+            item_name: `Abonnement ${body.plan}`,
+            currency_code: "EUR",
+            amount: body.plan === "free" ? "0" : String(getPlanAmount(body.plan)),
+            no_shipping: "1",
+            no_note: "1",
+            return: `${process.env["VITE_SUPABASE_URL"] || "http://localhost:5173"}/api/subscriptions/success?subscriptionId=${data.id}`,
+            cancel_return: `${process.env["VITE_SUPABASE_URL"] || "http://localhost:5173"}/api/subscriptions/cancel?subscriptionId=${data.id}`,
+          });
+          checkoutUrl = `https://www.paypal.com/cgi-bin/webscr?${params.toString()}`;
+        } else {
+          // RedotPay Checkout
+          const apiKey = process.env["REDOTPAY_UID"];
+          if (!apiKey) {
+            return Response.json(
+              { error: "REDOTPAY_UID non configuré. Ajoutez REDOTPAY_UID dans .env" },
+              { status: 500 },
+            );
+          }
+
+          // Appel API de RedotPay pour créer une session de paiement
+          try {
+            const response = await fetch("https://api.redotpay.com/v1/checkout", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify({
+                plan: body.plan,
+                amount: getPlanAmount(body.plan),
+                currency: "USD",
+                success_url: `${process.env["VITE_SUPABASE_URL"] || "http://localhost:5173"}/api/subscriptions/success?subscriptionId=${data.id}`,
+                cancel_url: `${process.env["VITE_SUPABASE_URL"] || "http://localhost:5173"}/pricing?error=payment_cancelled`,
+                metadata: {
+                  subscription_id: data.id,
+                  user_id: userId,
+                  provider: "redotpay",
+                },
+              }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              console.error("RedotPay API error:", errorData);
+              return Response.json(
+                { error: "Impossible de créer la session de paiement RedotPay" },
+                { status: 500 },
+              );
+            }
+
+            const checkoutData = await response.json();
+            checkoutUrl = checkoutData.checkout_url || checkoutData.session_url;
+          } catch (err) {
+            console.error("RedotPay API error:", err);
+            return Response.json({ error: "Impossible de contacter RedotPay" }, { status: 500 });
+          }
+        }
 
         return Response.json({
           subscription: {
@@ -99,3 +171,14 @@ export const Route = createFileRoute("/api/subscriptions")({
     },
   },
 });
+
+// Fonction pour obtenir le montant selon le plan
+function getPlanAmount(plan: string): number {
+  const prices: Record<string, number> = {
+    free: 0,
+    basic: 999,
+    pro: 2499,
+    enterprise: 4999,
+  };
+  return prices[plan] || 0;
+}

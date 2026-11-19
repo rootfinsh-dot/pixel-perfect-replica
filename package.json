@@ -77,7 +77,9 @@
     "vaul": "^1.1.2",
     "vite-tsconfig-paths": "^6.0.2",
     "xlsx": "^0.18.5",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "@paypal/react-paypal-js": "^10.6.1",
+    "@redotpay/redotpay-mppx": "^0.1.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",
