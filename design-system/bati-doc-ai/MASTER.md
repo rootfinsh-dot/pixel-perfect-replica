@@ -51,26 +51,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@300;400;500;600;700&display=swap');
 ```
 
-### Spacing Variables
+### Spacing & Shadows (Tailwind v4)
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--space-xs` | `4px` / `0.25rem` | Tight gaps |
-| `--space-sm` | `8px` / `0.5rem` | Icon gaps, inline spacing |
-| `--space-md` | `16px` / `1rem` | Standard padding |
-| `--space-lg` | `24px` / `1.5rem` | Section padding |
-| `--space-xl` | `32px` / `2rem` | Large gaps |
-| `--space-2xl` | `48px` / `3rem` | Section margins |
-| `--space-3xl` | `64px` / `4rem` | Hero padding |
+The project defines no custom `--space-*` / `--shadow-*` tokens — keep Tailwind's default scale:
+
+- **Spacing:** `gap-4`, `gap-6`, `p-4`, `space-y-4`, `inset-x-4`, `my-8`… (no custom tokens)
+- **Radii:** `--radius → rounded`, `--radius-sm → rounded-sm`, `rounded-md`, `rounded-lg`, `rounded-xl`, `rounded-2xl`, `rounded-3xl`, `rounded-4xl` (mapped in `@theme` in `src/styles.css`)
+- **Shadows** (default theme): `shadow`, `shadow-sm`, `shadow-md`, `shadow-lg`, `shadow-xl`
+- **Colors** are `@theme`-mapped in `src/styles.css` (`--color-background → bg-background`, `bg-primary`, `text-muted-foreground`, `border-border`…); all color values are `oklch` in the CSS — never hardcode hex in components.
 
 ### Shadow Depths
 
-| Level | Value | Usage |
-|-------|-------|-------|
-| `--shadow-sm` | `0 1px 2px rgba(0,0,0,0.05)` | Subtle lift |
-| `--shadow-md` | `0 4px 6px rgba(0,0,0,0.1)` | Cards, buttons |
-| `--shadow-lg` | `0 10px 15px rgba(0,0,0,0.1)` | Modals, dropdowns |
-| `--shadow-xl` | `0 20px 25px rgba(0,0,0,0.15)` | Hero images, featured cards |
+(Dropped — the project has no `--shadow-*` tokens. Use Tailwind's default shadows: `shadow`, `shadow-sm`, `shadow-md`, `shadow-lg`, `shadow-xl`.)
 
 ---
 
