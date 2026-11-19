@@ -12,12 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ApiCahierDechargesRouteRouteImport } from './routes/api/cahier-decharges/route'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects/index'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects/$projectId'
+import { Route as ApiCahierDechargesSaveRouteRouteImport } from './routes/api/cahier-decharges/save/route'
 import { Route as AuthenticatedProjectsProjectIdCahierDechargesRouteImport } from './routes/_authenticated/projects/$projectId/cahier-decharges'
-import { Route as ApiCahierDechargesRouteImport } from './routes/api/cahier-decharges'
-import { Route as ApiCahierDechargesSaveRouteImport } from './routes/api/cahier-decharges/save'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -31,6 +31,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCahierDechargesRouteRoute = ApiCahierDechargesRouteRouteImport.update({
+  id: '/api/cahier-decharges',
+  path: '/api/cahier-decharges',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiChatRoute = ApiChatRouteImport.update({
@@ -50,58 +55,90 @@ const AuthenticatedProjectsProjectIdRoute =
     path: '/projects/$projectId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiCahierDechargesSaveRouteRoute =
+  ApiCahierDechargesSaveRouteRouteImport.update({
+    id: '/save',
+    path: '/save',
+    getParentRoute: () => ApiCahierDechargesRouteRoute,
+  } as any)
+const AuthenticatedProjectsProjectIdCahierDechargesRoute =
+  AuthenticatedProjectsProjectIdCahierDechargesRouteImport.update({
+    id: '/cahier-decharges',
+    path: '/cahier-decharges',
+    getParentRoute: () => AuthenticatedProjectsProjectIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/api/cahier-decharges': typeof ApiCahierDechargesRouteRouteWithChildren
   '/api/chat': typeof ApiChatRoute
-  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
+  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRouteWithChildren
   '/projects/': typeof AuthenticatedProjectsIndexRoute
-  '/_authenticated/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
+  '/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/api/cahier-decharges': typeof ApiCahierDechargesRouteRouteWithChildren
   '/api/chat': typeof ApiChatRoute
-  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
+  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRouteWithChildren
   '/projects': typeof AuthenticatedProjectsIndexRoute
+  '/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/api/cahier-decharges': typeof ApiCahierDechargesRouteRouteWithChildren
   '/api/chat': typeof ApiChatRoute
-  '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
+  '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
+  '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRouteWithChildren
+  '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/_authenticated/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
-}
-export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
-  '/api/chat': typeof ApiChatRoute
-  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRoute
-  '/projects': typeof AuthenticatedProjectsIndexRoute
-  '/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/api/chat' | '/projects/$projectId' | '/projects/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/api/cahier-decharges'
+    | '/api/chat'
+    | '/api/cahier-decharges/save'
+    | '/projects/$projectId'
+    | '/projects/'
+    | '/projects/$projectId/cahier-decharges'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/api/chat' | '/projects/$projectId' | '/projects'
+  to:
+    | '/'
+    | '/auth'
+    | '/api/cahier-decharges'
+    | '/api/chat'
+    | '/api/cahier-decharges/save'
+    | '/projects/$projectId'
+    | '/projects'
+    | '/projects/$projectId/cahier-decharges'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/api/cahier-decharges'
     | '/api/chat'
+    | '/api/cahier-decharges/save'
     | '/_authenticated/projects/$projectId'
     | '/_authenticated/projects/'
+    | '/_authenticated/projects/$projectId/cahier-decharges'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiCahierDechargesRouteRoute: typeof ApiCahierDechargesRouteRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
 }
 
@@ -128,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cahier-decharges': {
+      id: '/api/cahier-decharges'
+      path: '/api/cahier-decharges'
+      fullPath: '/api/cahier-decharges'
+      preLoaderRoute: typeof ApiCahierDechargesRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/chat': {
       id: '/api/chat'
       path: '/api/chat'
@@ -149,47 +193,71 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsProjectIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/cahier-decharges': {
-      id: '/cahier-decharges'
-      path: '/cahier-decharges'
-      fullPath: '/cahier-decharges'
-      preLoaderRoute: typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
-      parentRoute: typeof AuthenticatedProjectsProjectIdRoute
-    }
-    '/api/cahier-decharges': {
-      id: '/api/cahier-decharges'
-      path: '/api/cahier-decharges'
-      fullPath: '/api/cahier-decharges'
-      preLoaderRoute: typeof ApiCahierDechargesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/cahier-decharges/save': {
       id: '/api/cahier-decharges/save'
-      path: '/api/cahier-decharges/save'
+      path: '/save'
       fullPath: '/api/cahier-decharges/save'
-      preLoaderRoute: typeof ApiCahierDechargesSaveRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof ApiCahierDechargesSaveRouteRouteImport
+      parentRoute: typeof ApiCahierDechargesRouteRoute
+    }
+    '/_authenticated/projects/$projectId/cahier-decharges': {
+      id: '/_authenticated/projects/$projectId/cahier-decharges'
+      path: '/cahier-decharges'
+      fullPath: '/projects/$projectId/cahier-decharges'
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdCahierDechargesRouteImport
+      parentRoute: typeof AuthenticatedProjectsProjectIdRoute
     }
   }
 }
 
+interface AuthenticatedProjectsProjectIdRouteChildren {
+  AuthenticatedProjectsProjectIdCahierDechargesRoute: typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
+}
+
+const AuthenticatedProjectsProjectIdRouteChildren: AuthenticatedProjectsProjectIdRouteChildren =
+  {
+    AuthenticatedProjectsProjectIdCahierDechargesRoute:
+      AuthenticatedProjectsProjectIdCahierDechargesRoute,
+  }
+
+const AuthenticatedProjectsProjectIdRouteWithChildren =
+  AuthenticatedProjectsProjectIdRoute._addFileChildren(
+    AuthenticatedProjectsProjectIdRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRoute
+  AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRouteWithChildren
   AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedProjectsProjectIdRoute: AuthenticatedProjectsProjectIdRoute,
+  AuthenticatedProjectsProjectIdRoute:
+    AuthenticatedProjectsProjectIdRouteWithChildren,
   AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface ApiCahierDechargesRouteRouteChildren {
+  ApiCahierDechargesSaveRouteRoute: typeof ApiCahierDechargesSaveRouteRoute
+}
+
+const ApiCahierDechargesRouteRouteChildren: ApiCahierDechargesRouteRouteChildren =
+  {
+    ApiCahierDechargesSaveRouteRoute: ApiCahierDechargesSaveRouteRoute,
+  }
+
+const ApiCahierDechargesRouteRouteWithChildren =
+  ApiCahierDechargesRouteRoute._addFileChildren(
+    ApiCahierDechargesRouteRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiCahierDechargesRouteRoute: ApiCahierDechargesRouteRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport
