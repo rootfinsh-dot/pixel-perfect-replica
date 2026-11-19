@@ -68,91 +68,38 @@ The project defines no custom `--space-*` / `--shadow-*` tokens — keep Tailwin
 
 ## Component Specs
 
-### Buttons
+### Buttons (Tailwind)
 
-```css
-/* Primary Button */
-.btn-primary {
-  background: #EA580C;
-  color: #000000;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
+| Role | Classes (Tailwind v4) |
+|------|------------------------|
+| Primary | `btn bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80 active:scale-[0.98] rounded-md px-4 py-2 font-semibold transition` |
+| Secondary | `btn border border-border bg-background hover:bg-muted text-foreground rounded-md px-4 py-2 font-semibold transition` |
 
-.btn-primary:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
+Notes: `btn` = `inline-flex items-center justify-center gap-2 font-semibold rounded-md transition active:cursor-pointer`. Colors come from `@theme` (`bg-primary`, `text-primary-foreground`, `border-border`, `hover:bg-primary/90`, `active:bg-primary/80`) — never hardcoded hex.
 
-/* Secondary Button */
-.btn-secondary {
-  background: transparent;
-  color: #64748B;
-  border: 2px solid #64748B;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 200ms ease;
-  cursor: pointer;
-}
-```
+### Cards (Tailwind)
 
-### Cards
+| Role | Classes |
+|------|---------|
+| Card | `card bg-card text-foreground border border-border rounded-xl p-4 shadow-sm` |
+| Card hover | add `hover:shadow-lg hover:-translate-y-0.5` |
 
-```css
-.card {
-  background: #F8FAFC;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: var(--shadow-md);
-  transition: all 200ms ease;
-  cursor: pointer;
-}
+### Inputs (Tailwind)
 
-.card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
-}
-```
+| Role | Classes |
+|------|---------|
+| Input | `input w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none` |
 
-### Inputs
+### Modals (Tailwind)
 
-```css
-.input {
-  padding: 12px 16px;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: border-color 200ms ease;
-}
+| Role | Classes |
+|------|---------|
+| Overlay | `modal-backdrop/60 fixed inset-0 bg-black` |
+| Dialog | `modal fixed inset-0 my-8 mx-auto max-w-lg rounded-2xl bg-card p-6 shadow-xl` |
 
-.input:focus {
-  border-color: #64748B;
-  outline: none;
-  box-shadow: 0 0 0 3px #64748B20;
-}
-```
-
-### Modals
-
-```css
-.modal-overlay {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.modal {
-  background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: var(--shadow-xl);
-  max-width: 500px;
-  width: 90%;
-}
-```
+Notes:
+- `modal-backdrop` / `modal` are examples; replace with your app's prefix (`dialog`, `sheet`, …) and keep the real semantics (`dialog` role, `aria-modal`).
+- The Master's CSS snippets (`.btn-primary`, `.card`, `.input`, `.modal-overlay`) are removed: they hardcoded colors and shadows that the project resolves through `@theme` in `src/styles.css` (all values `oklch`).
 
 ---
 
