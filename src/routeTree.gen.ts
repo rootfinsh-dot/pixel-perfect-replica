@@ -14,9 +14,12 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ApiCahierDechargesRouteRouteImport } from './routes/api/cahier-decharges/route'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiSubscriptionsRouteRouteImport } from './routes/api/subscriptions/route'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects/index'
 import { Route as AuthenticatedProjectsProjectIdRouteImport } from './routes/_authenticated/projects/$projectId'
 import { Route as ApiCahierDechargesSaveRouteRouteImport } from './routes/api/cahier-decharges/save/route'
+import { Route as ApiSubscriptionsChar91idChar93RouteRouteImport } from './routes/api/subscriptions/[id]/route'
+import { Route as ApiSubscriptionsMeRouteRouteImport } from './routes/api/subscriptions/me/route'
 import { Route as AuthenticatedProjectsProjectIdCahierDechargesRouteImport } from './routes/_authenticated/projects/$projectId/cahier-decharges'
 
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +46,11 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSubscriptionsRouteRoute = ApiSubscriptionsRouteRouteImport.update({
+  id: '/api/subscriptions',
+  path: '/api/subscriptions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedProjectsIndexRoute =
   AuthenticatedProjectsIndexRouteImport.update({
     id: '/projects/',
@@ -61,6 +69,17 @@ const ApiCahierDechargesSaveRouteRoute =
     path: '/save',
     getParentRoute: () => ApiCahierDechargesRouteRoute,
   } as any)
+const ApiSubscriptionsChar91idChar93RouteRoute =
+  ApiSubscriptionsChar91idChar93RouteRouteImport.update({
+    id: '/id',
+    path: '/id',
+    getParentRoute: () => ApiSubscriptionsRouteRoute,
+  } as any)
+const ApiSubscriptionsMeRouteRoute = ApiSubscriptionsMeRouteRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => ApiSubscriptionsRouteRoute,
+} as any)
 const AuthenticatedProjectsProjectIdCahierDechargesRoute =
   AuthenticatedProjectsProjectIdCahierDechargesRouteImport.update({
     id: '/cahier-decharges',
@@ -72,8 +91,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/api/cahier-decharges': typeof ApiCahierDechargesRouteRouteWithChildren
+  '/api/subscriptions': typeof ApiSubscriptionsRouteRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
+  '/api/subscriptions/id': typeof ApiSubscriptionsChar91idChar93RouteRoute
+  '/api/subscriptions/me': typeof ApiSubscriptionsMeRouteRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRouteWithChildren
   '/projects/': typeof AuthenticatedProjectsIndexRoute
   '/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
@@ -82,8 +104,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/api/cahier-decharges': typeof ApiCahierDechargesRouteRouteWithChildren
+  '/api/subscriptions': typeof ApiSubscriptionsRouteRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
+  '/api/subscriptions/id': typeof ApiSubscriptionsChar91idChar93RouteRoute
+  '/api/subscriptions/me': typeof ApiSubscriptionsMeRouteRoute
   '/projects/$projectId': typeof AuthenticatedProjectsProjectIdRouteWithChildren
   '/projects': typeof AuthenticatedProjectsIndexRoute
   '/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
@@ -94,8 +119,11 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/api/cahier-decharges': typeof ApiCahierDechargesRouteRouteWithChildren
+  '/api/subscriptions': typeof ApiSubscriptionsRouteRouteWithChildren
   '/api/chat': typeof ApiChatRoute
   '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
+  '/api/subscriptions/id': typeof ApiSubscriptionsChar91idChar93RouteRoute
+  '/api/subscriptions/me': typeof ApiSubscriptionsMeRouteRoute
   '/_authenticated/projects/$projectId': typeof AuthenticatedProjectsProjectIdRouteWithChildren
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/_authenticated/projects/$projectId/cahier-decharges': typeof AuthenticatedProjectsProjectIdCahierDechargesRoute
@@ -106,8 +134,11 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/api/cahier-decharges'
+    | '/api/subscriptions'
     | '/api/chat'
     | '/api/cahier-decharges/save'
+    | '/api/subscriptions/id'
+    | '/api/subscriptions/me'
     | '/projects/$projectId'
     | '/projects/'
     | '/projects/$projectId/cahier-decharges'
@@ -116,8 +147,11 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/api/cahier-decharges'
+    | '/api/subscriptions'
     | '/api/chat'
     | '/api/cahier-decharges/save'
+    | '/api/subscriptions/id'
+    | '/api/subscriptions/me'
     | '/projects/$projectId'
     | '/projects'
     | '/projects/$projectId/cahier-decharges'
@@ -127,8 +161,11 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/api/cahier-decharges'
+    | '/api/subscriptions'
     | '/api/chat'
     | '/api/cahier-decharges/save'
+    | '/api/subscriptions/id'
+    | '/api/subscriptions/me'
     | '/_authenticated/projects/$projectId'
     | '/_authenticated/projects/'
     | '/_authenticated/projects/$projectId/cahier-decharges'
@@ -139,6 +176,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiCahierDechargesRouteRoute: typeof ApiCahierDechargesRouteRouteWithChildren
+  ApiSubscriptionsRouteRoute: typeof ApiSubscriptionsRouteRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
 }
 
@@ -179,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/subscriptions': {
+      id: '/api/subscriptions'
+      path: '/api/subscriptions'
+      fullPath: '/api/subscriptions'
+      preLoaderRoute: typeof ApiSubscriptionsRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/projects/': {
       id: '/_authenticated/projects/'
       path: '/projects'
@@ -199,6 +244,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/cahier-decharges/save'
       preLoaderRoute: typeof ApiCahierDechargesSaveRouteRouteImport
       parentRoute: typeof ApiCahierDechargesRouteRoute
+    }
+    '/api/subscriptions/id': {
+      id: '/api/subscriptions/id'
+      path: '/id'
+      fullPath: '/api/subscriptions/id'
+      preLoaderRoute: typeof ApiSubscriptionsChar91idChar93RouteRouteImport
+      parentRoute: typeof ApiSubscriptionsRouteRoute
+    }
+    '/api/subscriptions/me': {
+      id: '/api/subscriptions/me'
+      path: '/me'
+      fullPath: '/api/subscriptions/me'
+      preLoaderRoute: typeof ApiSubscriptionsMeRouteRouteImport
+      parentRoute: typeof ApiSubscriptionsRouteRoute
     }
     '/_authenticated/projects/$projectId/cahier-decharges': {
       id: '/_authenticated/projects/$projectId/cahier-decharges'
@@ -253,11 +312,28 @@ const ApiCahierDechargesRouteRouteWithChildren =
     ApiCahierDechargesRouteRouteChildren,
   )
 
+interface ApiSubscriptionsRouteRouteChildren {
+  ApiSubscriptionsChar91idChar93RouteRoute: typeof ApiSubscriptionsChar91idChar93RouteRoute
+  ApiSubscriptionsMeRouteRoute: typeof ApiSubscriptionsMeRouteRoute
+}
+
+const ApiSubscriptionsRouteRouteChildren: ApiSubscriptionsRouteRouteChildren = {
+  ApiSubscriptionsChar91idChar93RouteRoute:
+    ApiSubscriptionsChar91idChar93RouteRoute,
+  ApiSubscriptionsMeRouteRoute: ApiSubscriptionsMeRouteRoute,
+}
+
+const ApiSubscriptionsRouteRouteWithChildren =
+  ApiSubscriptionsRouteRoute._addFileChildren(
+    ApiSubscriptionsRouteRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiCahierDechargesRouteRoute: ApiCahierDechargesRouteRouteWithChildren,
+  ApiSubscriptionsRouteRoute: ApiSubscriptionsRouteRouteWithChildren,
   ApiChatRoute: ApiChatRoute,
 }
 export const routeTree = rootRouteImport

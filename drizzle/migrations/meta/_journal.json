@@ -15,6 +15,13 @@
       "when": 1795045251512,
       "tag": "0001_cahiers_decharges",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795050239306,
+      "tag": "0002_subscriptions",
+      "breakpoints": true
     }
   ]
 }

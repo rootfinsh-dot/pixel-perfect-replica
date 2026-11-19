@@ -156,6 +156,45 @@ export type Database = {
         };
         Relationships: [];
       };
+      subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          plan: string;
+          payment_provider: string;
+          payment_id: string;
+          status: string;
+          trial_ends_at: string | null;
+          ends_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          plan?: string;
+          payment_provider?: string;
+          payment_id?: string;
+          status?: string;
+          trial_ends_at?: string | null;
+          ends_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          plan?: string;
+          payment_provider?: string;
+          payment_id?: string;
+          status?: string;
+          trial_ends_at?: string | null;
+          ends_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

@@ -51,3 +51,16 @@ export const cahiersDecharges = pgTable("cahiers_decharges", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
+
+export const subscriptions = pgTable("subscriptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull(),
+  plan: text("plan").notNull().default("basic"),
+  paymentProvider: text("payment_provider").notNull().default("paypal"),
+  paymentId: text("payment_id"),
+  status: text("status").notNull().default("pending"),
+  trialEndsAt: timestamp("trial_ends_at"),
+  endsAt: timestamp("ends_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
