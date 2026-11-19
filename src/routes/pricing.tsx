@@ -1,9 +1,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Zap, DollarSign, User, Globe } from "lucide-react";
+import { CheckCircle, Zap, DollarSign, Globe } from "lucide-react";
 import { useState } from "react";
 import { PLANS } from "@/components/subscriptions/Plans";
+
+// Configuration PayPal (depuis miftah-quran)
+export const PAYPAL_EMAIL = "dabalarbi@gmail.com";
+import { createFileRoute } from "@tanstack/react-router";
 
 // Configuration RedotPay (depuis miftah-quran)
 export const REDOTPAY_CONFIG = {
@@ -14,7 +18,18 @@ export const REDOTPAY_CONFIG = {
 // Plans disponibles
 const PLANS_LIST = PLANS;
 
-export default function PricingPage() {
+export const Route = createFileRoute("/pricing")({
+  head: () => ({
+    title: "Tarifs et Abonnements — BATI DOC AI",
+    meta: [
+      {
+        name: "description",
+        content: "Choisissez votre abonnement et payez par PayPal ou RodotPay.",
+      },
+    ],
+  }),
+});
+export function PricingPage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [paymentProvider, setPaymentProvider] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
