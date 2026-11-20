@@ -1,5 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { HardHat, FileSearch, Ruler, FileText, FolderKanban } from "lucide-react";
+import {
+  HardHat,
+  FileSearch,
+  Ruler,
+  FileText,
+  FolderKanban,
+  CreditCard,
+  Users,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -80,14 +88,33 @@ function Home() {
           </Link>
         </div>
       </section>
-      <section className="mx-auto grid max-w-4xl gap-4 px-6 py-14 sm:grid-cols-2">
-        {FEATURES.map(({ icon: I, t, d }) => (
-          <div key={t} className="rounded-lg border border-border bg-card p-5">
-            <I className="h-5 w-5 text-primary" />
-            <h2 className="mt-2 font-display font-bold">{t}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{d}</p>
+      <section className="mx-auto max-w-4xl px-6 pb-14 sm:px-6">
+        <div className="rounded-xl border border-border bg-card p-6 sm:p-8">
+          <div className="flex items-center gap-3 mb-4">
+            <CreditCard className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-xl font-bold">S'abonner et payer</h2>
           </div>
-        ))}
+          <p className="text-sm text-muted-foreground mb-4">
+            Choisissez votre plan et payez en toute transparence. Deux méthodes de paiement
+            disponibles : PayPal et RodotPay.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Link
+              to="/pricing"
+              className="inline-flex items-center gap-3 rounded-md border border-input bg-background px-4 py-3 hover:bg-accent transition-colors"
+            >
+              <Users className="h-4 w-4" />
+              <span>Voir les plans et s'abonner</span>
+            </Link>
+            <Link
+              to="/pricing"
+              className="inline-flex items-center gap-3 rounded-md border border-input bg-background px-4 py-3 hover:bg-accent transition-colors"
+            >
+              <CreditCard className="h-4 w-4" />
+              <span>Payer avec PayPal ou RodotPay</span>
+            </Link>
+          </div>
+        </div>
       </section>
     </div>
   );

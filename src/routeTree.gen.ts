@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as AuthenticatedPricingRouteImport } from './routes/_authenticated/pricing'
 import { Route as ApiCahierDechargesRouteRouteImport } from './routes/api/cahier-decharges/route'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as ApiSubscriptionsRouteRouteImport } from './routes/api/subscriptions/route'
@@ -39,10 +39,10 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PricingRoute = PricingRouteImport.update({
+const AuthenticatedPricingRoute = AuthenticatedPricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiCahierDechargesRouteRoute = ApiCahierDechargesRouteRouteImport.update({
   id: '/api/cahier-decharges',
@@ -110,9 +110,9 @@ const AuthenticatedProjectsProjectIdCahierDechargesRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/pricing': typeof PricingRoute
   '/api/cahier-decharges': typeof ApiCahierDechargesRouteRouteWithChildren
   '/api/subscriptions': typeof ApiSubscriptionsRouteRouteWithChildren
+  '/pricing': typeof AuthenticatedPricingRoute
   '/api/chat': typeof ApiChatRoute
   '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
   '/api/subscriptions/cancel': typeof ApiSubscriptionsCancelRouteRoute
@@ -126,9 +126,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/pricing': typeof PricingRoute
   '/api/cahier-decharges': typeof ApiCahierDechargesRouteRouteWithChildren
   '/api/subscriptions': typeof ApiSubscriptionsRouteRouteWithChildren
+  '/pricing': typeof AuthenticatedPricingRoute
   '/api/chat': typeof ApiChatRoute
   '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
   '/api/subscriptions/cancel': typeof ApiSubscriptionsCancelRouteRoute
@@ -144,9 +144,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/pricing': typeof PricingRoute
   '/api/cahier-decharges': typeof ApiCahierDechargesRouteRouteWithChildren
   '/api/subscriptions': typeof ApiSubscriptionsRouteRouteWithChildren
+  '/_authenticated/pricing': typeof AuthenticatedPricingRoute
   '/api/chat': typeof ApiChatRoute
   '/api/cahier-decharges/save': typeof ApiCahierDechargesSaveRouteRoute
   '/api/subscriptions/cancel': typeof ApiSubscriptionsCancelRouteRoute
@@ -162,9 +162,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
-    | '/pricing'
     | '/api/cahier-decharges'
     | '/api/subscriptions'
+    | '/pricing'
     | '/api/chat'
     | '/api/cahier-decharges/save'
     | '/api/subscriptions/cancel'
@@ -178,9 +178,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/pricing'
     | '/api/cahier-decharges'
     | '/api/subscriptions'
+    | '/pricing'
     | '/api/chat'
     | '/api/cahier-decharges/save'
     | '/api/subscriptions/cancel'
@@ -195,9 +195,9 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/pricing'
     | '/api/cahier-decharges'
     | '/api/subscriptions'
+    | '/_authenticated/pricing'
     | '/api/chat'
     | '/api/cahier-decharges/save'
     | '/api/subscriptions/cancel'
@@ -213,7 +213,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  PricingRoute: typeof PricingRoute
   ApiCahierDechargesRouteRoute: typeof ApiCahierDechargesRouteRouteWithChildren
   ApiSubscriptionsRouteRoute: typeof ApiSubscriptionsRouteRouteWithChildren
   ApiChatRoute: typeof ApiChatRoute
@@ -242,12 +241,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pricing': {
-      id: '/pricing'
+    '/_authenticated/pricing': {
+      id: '/_authenticated/pricing'
       path: '/pricing'
       fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedPricingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/cahier-decharges': {
       id: '/api/cahier-decharges'
@@ -345,11 +344,13 @@ const AuthenticatedProjectsProjectIdRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedPricingRoute: typeof AuthenticatedPricingRoute
   AuthenticatedProjectsProjectIdRoute: typeof AuthenticatedProjectsProjectIdRouteWithChildren
   AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedPricingRoute: AuthenticatedPricingRoute,
   AuthenticatedProjectsProjectIdRoute:
     AuthenticatedProjectsProjectIdRouteWithChildren,
   AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
@@ -396,7 +397,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  PricingRoute: PricingRoute,
   ApiCahierDechargesRouteRoute: ApiCahierDechargesRouteRouteWithChildren,
   ApiSubscriptionsRouteRoute: ApiSubscriptionsRouteRouteWithChildren,
   ApiChatRoute: ApiChatRoute,

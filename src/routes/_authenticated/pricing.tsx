@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -77,14 +78,18 @@ interface Window {
   };
 }
 
-export const Route = createFileRoute("/pricing")({
+export const Route = createFileRoute("/_authenticated/pricing")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) {
+      throw redirect({ to: "/auth" });
+    }
+  },
   head: () => ({
     title: "Tarifs et Abonnements — BATI DOC AI",
     meta: [
-      {
-        name: "description",
-        content: "Choisissez votre abonnement et payez par PayPal ou RodotPay.",
-      },
+      { name: "description", content: "Choisissez votre abonnement et payez par PayPal ou RodotPay." },
     ],
   }),
 });
