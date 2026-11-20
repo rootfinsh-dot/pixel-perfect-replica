@@ -1,3 +1,4 @@
+import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,7 +8,6 @@ import { PLANS } from "@/components/subscriptions/Plans";
 
 // Configuration PayPal (depuis miftah-quran)
 export const PAYPAL_EMAIL = "dabalarbi@gmail.com";
-import { createFileRoute } from "@tanstack/react-router";
 
 // Configuration RedotPay (depuis miftah-quran)
 export const REDOTPAY_CONFIG = {
@@ -17,6 +17,65 @@ export const REDOTPAY_CONFIG = {
 
 // Plans disponibles
 const PLANS_LIST = PLANS;
+
+// Paiement types pour PayPal SDK
+interface PayPalCreateOrderData {
+  subscriptionId: string;
+}
+
+interface PayPalCreateOrderActions {
+  order: {
+    create: (data: PayPalCreateOrderRequest) => Promise<PayPalCreateOrderResponse>;
+  };
+}
+
+interface PayPalCreateOrderRequest {
+  purchase_units: Array<{
+    amount: {
+      value: string;
+      currency: string;
+    };
+  }>;
+  custom_id: string;
+  description: string;
+}
+
+interface PayPalCreateOrderResponse {
+  id: string;
+}
+
+interface PayPalOnApproveData {
+  subscriptionId: string;
+  orderID: string;
+}
+
+interface PayPalOnApproveActions {
+  order: {
+    capture: () => Promise<PayPalCaptureResponse>;
+  };
+}
+
+interface PayPalCaptureResponse {
+  id: string;
+}
+
+interface PayPalButtonOptions {
+  createOrder?: (
+    data: PayPalCreateOrderData,
+    actions: PayPalCreateOrderActions,
+  ) => Promise<PayPalCreateOrderResponse>;
+  onApprove?: (data: PayPalOnApproveData, actions: PayPalOnApproveActions) => Promise<void>;
+  onError?: (error: Error) => void;
+}
+
+interface Window {
+  paypal?: {
+    Button: {
+      render: (container: string, options: PayPalButtonOptions) => Promise<void>;
+    };
+    ready: () => Promise<void>;
+  };
+}
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -29,6 +88,7 @@ export const Route = createFileRoute("/pricing")({
     ],
   }),
 });
+
 export function PricingPage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [paymentProvider, setPaymentProvider] = useState<string | null>(null);
