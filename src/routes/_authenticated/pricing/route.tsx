@@ -97,7 +97,7 @@ export const Route = createFileRoute("/_authenticated/pricing")({
 export function PricingPage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [paymentProvider, setPaymentProvider] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleSubscribe = async (plan: string, provider: string) => {
     setLoading(true);
