@@ -61,10 +61,7 @@ interface PayPalCaptureResponse {
 }
 
 interface PayPalButtonOptions {
-  createOrder?: (
-    data: PayPalCreateOrderData,
-    actions: PayPalCreateOrderActions,
-  ) => Promise<PayPalCreateOrderResponse>;
+  createOrder?: (data: PayPalCreateOrderData, actions: PayPalCreateOrderActions) => Promise<PayPalCreateOrderResponse>;
   onApprove?: (data: PayPalOnApproveData, actions: PayPalOnApproveActions) => Promise<void>;
   onError?: (error: Error) => void;
 }
@@ -204,7 +201,7 @@ export function PricingPage() {
               <div className="flex items-center justify-between">
                 <span className="font-semibold">{plan.name}</span>
                 <Badge variant={selectedPlan === plan.id ? "default" : "secondary"}>
-                  {plan.price === 0 ? "Gratuit" : `$${plan.price}`}
+                  {plan.price === 0 ? "Gratuit" : `€${plan.price}`}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-1">{plan.description}</p>
@@ -230,7 +227,7 @@ export function PricingPage() {
                 id: "paypal",
                 name: "PayPal",
                 icon: "🅿️",
-                description: "Paiement sécurisé via PayPal Checkout",
+                description: "Paiement sécurisé via PayPal",
               },
               {
                 id: "redotpay",
